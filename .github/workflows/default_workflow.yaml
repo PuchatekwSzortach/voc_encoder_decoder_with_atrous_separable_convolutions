@@ -9,7 +9,7 @@ jobs:
       - name: check default directory
         run: echo $PWD
       - name: "set directory and check it"
-        working-directory: /my_app
+        working-directory: ./net
         run: echo $PWD
     # container:
     #   image: tensorflow/tensorflow:2.2.0-gpu
