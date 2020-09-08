@@ -4,12 +4,9 @@ on: [push]
 jobs:
   run_commit_stage:
     runs-on: ubuntu-20.04
+    container: tensorflow/tensorflow:2.2.0-gpu
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
       - name: install dependencies
-        run: pip install pytest invoke pycodestyle xenon pylint gitpython
-      - name: run unit run unit tests
-        run: invoke tests.commit-stage
+        run: pip install ./requirements.txt
+
