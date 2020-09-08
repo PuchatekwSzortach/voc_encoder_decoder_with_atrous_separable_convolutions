@@ -18,7 +18,7 @@ jobs:
         #   apt update && apt install -y wget vim git
         #   pip install -r requirements.txt
         run: |
-          pip install -r requirements.txt
+          pip install pytest pycodestyle xenon pylint invoke gitpython
       # - name: check git
       #   run: which git && git --version
       - name: check directory content
