@@ -34,6 +34,6 @@ jobs:
           apt update && apt install -y wget vim git
           pip install pytest pycodestyle xenon pylint invoke gitpython
       - name: check directory content
-        run: ls -la
+        run: echo $PWD && ls -la
       - name: run commit stage
         run: invoke tests.commit-stage
