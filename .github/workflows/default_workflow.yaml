@@ -4,9 +4,12 @@ on: [push]
 jobs:
   run_commit_stage:
     runs-on: ubuntu-20.04
-    container: tensorflow/tensorflow:2.2.0-gpu
+    container:
+      image: tensorflow/tensorflow:2.2.0-gpu
+      volumes:
+        - $PWD:/app
     steps:
       - uses: actions/checkout@v2
       - name: install dependencies
-        run: pip install ./requirements.txt
+        run: pip install /app/requirements.txt
 
