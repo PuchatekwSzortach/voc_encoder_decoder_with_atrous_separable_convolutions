@@ -10,6 +10,6 @@ jobs:
         with:
           python-version: '3.8'
       - name: install dependencies
-        run: pip install pytest invoke pycodestyle xenon pylint
+        run: pip install pytest invoke pycodestyle xenon pylint gitpython
       - name: run unit run unit tests
         run: invoke tests.commit-stage
