@@ -2,25 +2,34 @@ name: Default workflow
 on: [push]
 
 jobs:
-  run_commit_stage:
+  run_commit_stage_on_host:
     runs-on: ubuntu-20.04
-    # container:
-    #   image: tensorflow/tensorflow:2.2.0-gpu
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: '3.6.9'
-      - name: check python version
-        run: python --version
       - name: install dependencies
-        # run: |
-        #   apt update && apt install -y wget vim git
-        #   pip install -r requirements.txt
         run: |
           pip install pytest pycodestyle xenon pylint invoke gitpython
-      # - name: check git
-      #   run: which git && git --version
+      - name: check directory content
+        run: ls -la
+      - name: run commit stage
+        run: invoke tests.commit-stage
+
+  run_commit_stage_in_container:
+    runs-on: ubuntu-20.04
+    container:
+      image: tensorflow/tensorflow:2.2.0-gpu
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6.9'
+      - name: install dependencies
+        run: |
+          apt update && apt install -y wget vim git
+          pip install -r requirements.txt
       - name: check directory content
         run: ls -la
       - name: run commit stage
