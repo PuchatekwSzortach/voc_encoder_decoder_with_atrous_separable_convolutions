@@ -27,9 +27,12 @@ jobs:
         with:
           python-version: '3.6.9'
       - name: install dependencies
+        # run: |
+        #   apt update && apt install -y wget vim git
+        #   pip install -r requirements.txt
         run: |
           apt update && apt install -y wget vim git
-          pip install -r requirements.txt
+          pip install pytest pycodestyle xenon pylint invoke gitpython
       - name: check directory content
         run: ls -la
       - name: run commit stage
