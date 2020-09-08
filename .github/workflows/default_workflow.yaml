@@ -28,11 +28,8 @@ jobs:
         run: |
           pip install pytest pycodestyle xenon pylint invoke
       - name: check directory content
-        working-directory: /app
         run: echo $PWD && ls -la
       - name: run unit tests
-        working-directory: /app
         run: invoke tests.unit-tests
       - name: run static code analysis
-        working-directory: /app
         run: invoke tests.static-code-analysis
