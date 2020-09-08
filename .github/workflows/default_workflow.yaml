@@ -4,21 +4,11 @@ on: [push]
 jobs:
   run_commit_stage:
     runs-on: ubuntu-20.04
-    # steps:
-    #   - uses: actions/checkout@v2
-    #   - name: check default directory
-    #     run: echo $PWD
-    #   - name: "set directory and check it"
-    #     working-directory: ./net
-    #     run: echo $PWD
     container:
       image: tensorflow/tensorflow:2.2.0-gpu
-      # volumes:
-      #   - /home/runner/work/voc_encoder_decoder_with_atrous_separable_convolutions/voc_encoder_decoder_with_atrous_separable_convolutions:/app
     steps:
       - uses: actions/checkout@v2
-      - name: show directory content
-        run: ls -l .
-      # - name: install dependencies
-      #   run: pip install -r /app/requirements.txt
-
+      - name: install dependencies
+        run: pip install -r requirements.txt
+      - name: run commit stage
+        run: invoke tests.commit-stage
