@@ -14,5 +14,7 @@ jobs:
           pip install -r requirements.txt
       - name: check git
         run: which git && git --version
+      - name: check directory content
+        run: ls -la
       - name: run commit stage
         run: invoke tests.commit-stage
