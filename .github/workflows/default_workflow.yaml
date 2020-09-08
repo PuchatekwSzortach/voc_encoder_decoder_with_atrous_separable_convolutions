@@ -4,12 +4,19 @@ on: [push]
 jobs:
   run_commit_stage:
     runs-on: ubuntu-20.04
-    container:
-      image: tensorflow/tensorflow:2.2.0-gpu
-      volumes:
-        - $PWD:/app
     steps:
       - uses: actions/checkout@v2
-      - name: install dependencies
-        run: pip install /app/requirements.txt
+      - name: check default directory
+        run: echo $PWD
+      - name: "set directory and check it"
+        working-directory: my_app
+        run: echo $PWD
+    # container:
+    #   image: tensorflow/tensorflow:2.2.0-gpu
+    #   volumes:
+    #     - $PWD:/app
+    # steps:
+    #   - uses: actions/checkout@v2
+    #   - name: install dependencies
+    #     run: pip install /app/requirements.txt
 
