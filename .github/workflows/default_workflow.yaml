@@ -13,10 +13,12 @@ jobs:
     #     run: echo $PWD
     container:
       image: tensorflow/tensorflow:2.2.0-gpu
-      volumes:
-        - /home/runner/work/voc_encoder_decoder_with_atrous_separable_convolutions/voc_encoder_decoder_with_atrous_separable_convolutions:/app
+      # volumes:
+      #   - /home/runner/work/voc_encoder_decoder_with_atrous_separable_convolutions/voc_encoder_decoder_with_atrous_separable_convolutions:/app
     steps:
       - uses: actions/checkout@v2
-      - name: install dependencies
-        run: pip install -r /app/requirements.txt
+      - name: show directory content
+        run: ls -l .
+      # - name: install dependencies
+      #   run: pip install -r /app/requirements.txt
 
