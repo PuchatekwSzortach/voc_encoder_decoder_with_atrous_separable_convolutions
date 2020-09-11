@@ -26,9 +26,7 @@ jobs:
           python-version: '3.6.9'
       - name: install dependencies
         run: |
-          pip install pytest pycodestyle xenon pylint invoke gitpython
-      - name: check directory content
-        run: echo $PWD && ls -la
+          pip install -r requirements.txt
       - name: run unit tests
         run: invoke tests.unit-tests
       - name: run static code analysis
