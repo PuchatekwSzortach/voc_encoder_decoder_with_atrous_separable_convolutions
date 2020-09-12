@@ -1,9 +1,14 @@
-# Dockerfile for app container
-FROM puchatek_w_szortach/voc_encoder_decoder_with_atrous_separable_convolutions_base:0.1.0
+FROM tensorflow/tensorflow:2.2.0-gpu
 
-# Update python environment
+# Install a few useful libs and apps
+RUN apt update && apt install -y wget vim git
+
+# Install python environment
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
+
+# Add user for the container
+RUN useradd -u 1010 -ms /bin/bash app_user
 
 # Setup bashrc for app user
 COPY ./docker/bashrc /home/app_user/.bashrc
@@ -19,6 +24,3 @@ USER app_user
 
 # Set up working directory
 WORKDIR /app
-
-# Copy app code
-COPY . /app

@@ -46,21 +46,3 @@ def build_app_container(context):
     )
 
     context.run(command, echo=True)
-
-
-@invoke.task
-def build_app_base_container(context, tag):
-    """
-    Build app base container
-
-    :param context: invoke.Context instance
-    :param context: tag: str, tag for the image
-    """
-
-    command = (
-        "docker build "
-        f"--tag puchatek_w_szortach/voc_encoder_decoder_with_atrous_separable_convolutions_base:{tag} "
-        "-f ./docker/app_base.Dockerfile ."
-    )
-
-    context.run(command, echo=True)
