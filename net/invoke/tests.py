@@ -37,7 +37,6 @@ def commit_stage(context):
 
     unit_tests(context)
     static_code_analysis(context)
-    inserts_count_check(context)
 
 
 @invoke.task
