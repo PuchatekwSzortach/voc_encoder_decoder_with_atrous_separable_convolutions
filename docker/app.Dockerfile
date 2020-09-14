@@ -13,6 +13,8 @@ RUN useradd -u 1010 -ms /bin/bash app_user
 # Setup bashrc for app user
 COPY ./docker/bashrc /home/app_user/.bashrc
 
+ENV PATH=$PATH:/home/app_user/.local/bin
+
 # Setup PYTHONPATH
 ENV PYTHONPATH=.
 
