@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+    nginx:
+        container_name: "voc_nginx"
+        image: "nginx:1.19.2"
+        # Run container on default docker network
+        network_mode: bridge
+        ports:
+            - "8080:80"
+        volumes:
+            - log_data:/usr/share/nginx/html
+
+volumes:
+    log_data:

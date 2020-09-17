@@ -1,4 +1,5 @@
-data_directory_on_host: "../../data"
+DATA_DIRECTORY_ON_HOST: "../../data"
+VOC_DATA_DIRECTORY: "/data/VOC2012"
 
 voc:
   data_directory: "/data/VOC2012"

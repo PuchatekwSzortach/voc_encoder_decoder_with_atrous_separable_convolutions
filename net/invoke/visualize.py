@@ -16,6 +16,7 @@ def visualize_data(_context, config_path):
     """
 
     import tqdm
+    import vlogging
 
     import net.data
     import net.utilities
@@ -28,11 +29,24 @@ def visualize_data(_context, config_path):
         batch_size=config["batch_size"]
     )
 
+    logger = net.utilities.get_logger(path="/tmp/log.html")
+
     iterator = iter(data_loader)
 
     for _ in tqdm.tqdm(range(4)):
 
         images, segmentations = next(iterator)
-        print([image.shape for image in images])
-        print([segmentation.shape for segmentation in segmentations])
-        print()
+
+        logger.info(
+            vlogging.VisualRecord(
+                title="images",
+                imgs=images
+            )
+        )
+
+        logger.info(
+            vlogging.VisualRecord(
+                title="segmentations",
+                imgs=segmentations
+            )
+        )
