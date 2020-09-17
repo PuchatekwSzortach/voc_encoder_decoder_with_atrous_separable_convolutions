@@ -1,5 +1,8 @@
 DATA_DIRECTORY_ON_HOST: "../../data"
 VOC_DATA_DIRECTORY: "/data/VOC2012"
+VOC_DATA_IMAGES_DIRECTORY: "/data/VOC2012/JPEGImages"
+
+HARIKARAN_DATA_IMAGES_DIRECTORY: "/data/hariharan_semantic_contours_dataset/dataset/img"
 
 voc:
   data_directory: "/data/VOC2012"
