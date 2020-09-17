@@ -73,7 +73,7 @@ def up(context, config_path):
     config = net.utilities.read_yaml(config_path)
 
     # Just load every key for which value is a string
-    environmental_variables = {key: value for key, value in config.items() if isinstance(value, str)}
-    environmental_variables_string = " ".join([f"{key}={value}" for key, value in environmental_variables.items()])
+    environmental_variables_string = " ".join(
+        [f"{key}={value}" for key, value in config.items() if isinstance(value, str)])
 
     context.run(environmental_variables_string + " docker-compose up -d", echo=True, pty=True)
