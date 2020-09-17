@@ -1,7 +1,7 @@
 FROM tensorflow/tensorflow:2.2.0-gpu
 
 # Install a few useful libs and apps
-RUN apt update && apt install -y wget vim git
+RUN apt update && apt install -y wget vim
 
 # Install python environment
 COPY ./requirements.txt /tmp/requirements.txt

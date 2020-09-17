@@ -59,7 +59,7 @@ class VOCSamplesDataLoader:
 
     def __len__(self):
 
-        return len(self.samples_paths)
+        return len(self.samples_paths) // self.batch_size
 
     def __iter__(self) -> typing.Iterator[typing.Tuple[typing.List, typing.List]]:
         """
@@ -70,7 +70,7 @@ class VOCSamplesDataLoader:
 
             start_index = 0
 
-            while start_index < len(self):
+            while start_index < len(self.samples_paths):
 
                 samples_paths_batch = self.samples_paths[start_index: start_index + self.batch_size]
 
