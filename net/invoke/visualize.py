@@ -24,8 +24,9 @@ def visualize_data(_context, config_path):
     config = net.utilities.read_yaml(config_path)
 
     data_loader = net.data.VOCSamplesDataLoader(
-        data_directory=config["voc"]["data_directory"],
-        data_set_path=config["voc"]["validation_set_path"],
+        images_directory=config["voc_data_images_directory"],
+        segmentations_directory=config["voc_data_segmentations_directory"],
+        data_set_path=config["voc_training_samples_list_path"],
         batch_size=config["batch_size"]
     )
 
@@ -40,13 +41,13 @@ def visualize_data(_context, config_path):
         logger.info(
             vlogging.VisualRecord(
                 title="images",
-                imgs=images
+                imgs=images.tolist()
             )
         )
 
         logger.info(
             vlogging.VisualRecord(
                 title="segmentations",
-                imgs=segmentations
+                imgs=segmentations.tolist()
             )
         )

@@ -24,7 +24,7 @@ def run(context, config_path):
     run_options = {
         # Use gpu runtime if host has cuda installed
         "gpu_capabilities": "--gpus all" if "/cuda/" in os.environ["PATH"] else "",
-        "data_directory_on_host": os.path.abspath(config["DATA_DIRECTORY_ON_HOST"]),
+        "data_directory_on_host": os.path.abspath(config["data_directory_on_host"]),
         # A bit of sourcery to create data volume that can be shared with docker-compose containers
         "log_data_volume": os.path.basename(os.path.abspath('.') + '_log_data')
     }

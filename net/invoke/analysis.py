@@ -26,8 +26,8 @@ def analyze_image_sizes(_context, config_path):
     config = net.utilities.read_yaml(config_path)
 
     paths = \
-        glob.glob(os.path.join(config["VOC_DATA_IMAGES_DIRECTORY"], "**/*.jpg"), recursive=True) + \
-        glob.glob(os.path.join(config["HARIKARAN_DATA_IMAGES_DIRECTORY"], "**/*.jpg"), recursive=True)
+        glob.glob(os.path.join(config["voc_data_images_directory"], "**/*.jpg"), recursive=True) + \
+        glob.glob(os.path.join(config["harikaran_data_images_directory"], "**/*.jpg"), recursive=True)
 
     sizes = [PIL.Image.open(path).size for path in tqdm.tqdm(paths)]
 

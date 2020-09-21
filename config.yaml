@@ -1,17 +1,14 @@
-DATA_DIRECTORY_ON_HOST: "../../data"
-VOC_DATA_DIRECTORY: "/data/VOC2012"
-VOC_DATA_IMAGES_DIRECTORY: "/data/VOC2012/JPEGImages"
+data_directory_on_host: "../../data"
 
-HARIKARAN_DATA_IMAGES_DIRECTORY: "/data/hariharan_semantic_contours_dataset/dataset/img"
+voc_data_images_directory: "/data/VOC2012/JPEGImages"
+voc_data_segmentations_directory: "/data/VOC2012/SegmentationClass"
+voc_training_samples_list_path: "/data/VOC2012/ImageSets/Segmentation/train.txt"
+voc_validation_samples_list_path: "/data/VOC2012/ImageSets/Segmentation/val.txt"
 
-voc:
-  data_directory: "/data/VOC2012"
-  train_set_path: "ImageSets/Segmentation/train.txt"
-  validation_set_path: "ImageSets/Segmentation/val.txt"
-
-hariharan:
-  data_directory: "/data/hariharan_semantic_contours_dataset"
-  train_set_path: "dataset/train_noval.txt"
-  validation_set_path: "dataset/val.txt"
+harikaran_data_images_directory: "/data/hariharan_semantic_contours_dataset/dataset/img"
 
 batch_size: 4
+
+# Dimension to which images will be padded during training, so that images of different original size
+# can be batched together
+training_image_dimension: 512

@@ -6,6 +6,7 @@ import os
 import typing
 
 import cv2
+import numpy as np
 
 
 class VOCSamplesDataLoader:
@@ -13,45 +14,50 @@ class VOCSamplesDataLoader:
     Class for loading VOC samples
     """
 
-    def __init__(self, data_directory: str, data_set_path: str, batch_size: int) -> None:
+    def __init__(self, images_directory: str, segmentations_directory: str, data_set_path, batch_size: int) -> None:
         """
         Constructor
 
         Args:
-            data_directory (str): path to directory with data
+            images_directory (str): path to directory with images
+            segmentations_directory (str): path to directory with segmentations
             data_set_path (str): path to file with list of images for dataset. Defined w.r.t. data_directory
             batch_size (int): batch size
         """
 
         self.samples_paths = self._get_samples_paths(
-            data_directory=data_directory,
+            images_directory=images_directory,
+            segmentations_directory=segmentations_directory,
             data_set_path=data_set_path
         )
 
         self.batch_size = batch_size
 
-    def _get_samples_paths(self, data_directory: str, data_set_path: str) -> typing.List[typing.Tuple[str, str]]:
+    def _get_samples_paths(
+        self, images_directory: str, segmentations_directory: str, data_set_path
+            ) -> typing.List[typing.Tuple[str, str]]:
         """
         Get a list of (image_path, segmentation_path) for samples identified by
         data directory and data set path
 
         Args:
-            data_directory (str): [description]
-            data_set_path (str): [description]
+            images_directory (str): path to directory with images
+            segmentations_directory (str): path to directory with segmentations
+            data_set_path (str): path to file with list of images for dataset. Defined w.r.t. data_directory
         Returns:
             typing.List[typing.Tuple[str, str]: list of tuples (image_path, segmentation_path)
         """
 
         samples = []
 
-        with open(os.path.join(data_directory, data_set_path)) as file:
+        with open(data_set_path) as file:
 
             for line in file.readlines():
 
                 file_stem = line.strip()
 
-                image_path = os.path.join(data_directory, "JPEGImages/{}.jpg".format(file_stem))
-                segmentation_path = os.path.join(data_directory, "SegmentationClass/{}.png".format(file_stem))
+                image_path = os.path.join(images_directory, "{}.jpg".format(file_stem))
+                segmentation_path = os.path.join(segmentations_directory, "{}.png".format(file_stem))
 
                 samples.append((image_path, segmentation_path))
 
@@ -61,7 +67,7 @@ class VOCSamplesDataLoader:
 
         return len(self.samples_paths) // self.batch_size
 
-    def __iter__(self) -> typing.Iterator[typing.Tuple[typing.List, typing.List]]:
+    def __iter__(self) -> typing.Iterator[typing.Tuple[np.ndarray, np.ndarray]]:
         """
         Iterator, yields tuples (images, segmentations)
         """
@@ -85,7 +91,7 @@ class VOCSamplesDataLoader:
     def _get_samples_batch(
         self,
         samples_paths: typing.List[typing.Tuple[str, str]]
-            ) -> typing.Tuple[typing.List, typing.List]:
+            ) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
         Given batch of samples paths, return batch of samples
 
@@ -107,4 +113,36 @@ class VOCSamplesDataLoader:
                 cv2.imread(segmentation_path)
             )
 
-        return images, segmentations
+        return np.array(images), np.array(segmentations)
+
+
+class TrainingDataLoader:
+    """
+    Data loader that yields batches (images, segmentations) suitable for training segmentation model
+    """
+
+    def __init__(self, samples_data_loader: VOCSamplesDataLoader, use_training_mode: bool) -> None:
+        """
+        Constructor
+
+        Args:
+            samples_data_loader (VOCSamplesDataLoader): samples data loader
+            use_training_mode (bool): specifies if training or validation data mode should be used.
+        """
+
+        self.samples_data_loader = samples_data_loader
+        self.use_training_model = use_training_mode
+
+    def __len__(self):
+
+        return len(self.samples_data_loader)
+
+    def __iter__(self):
+
+        iterator = iter(self.samples_data_loader)
+
+        while True:
+
+            images, segmentations = next(iterator)
+
+            yield images, segmentations
