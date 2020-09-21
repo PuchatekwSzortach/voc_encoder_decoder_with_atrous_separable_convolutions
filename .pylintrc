@@ -142,7 +142,8 @@ disable=print-statement,
         unnecessary-pass,
         logging-fstring-interpolation,
         # Unfortunately pylint has problems analyzing tensorflow code properly
-        unexpected-keyword-arg
+        unexpected-keyword-arg,
+        unnecessary-comprehension
 
 
 # Enable the message, report, category or checker with the given id(s). You can
