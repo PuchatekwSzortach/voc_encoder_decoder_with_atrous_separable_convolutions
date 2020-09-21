@@ -3,6 +3,7 @@ Module with data related code
 """
 
 import os
+import random
 import typing
 
 import cv2
@@ -14,7 +15,10 @@ class VOCSamplesDataLoader:
     Class for loading VOC samples
     """
 
-    def __init__(self, images_directory: str, segmentations_directory: str, data_set_path, batch_size: int) -> None:
+    def __init__(
+        self, images_directory: str, segmentations_directory: str, data_set_path, batch_size: int,
+        shuffle: bool
+            ) -> None:
         """
         Constructor
 
@@ -23,6 +27,7 @@ class VOCSamplesDataLoader:
             segmentations_directory (str): path to directory with segmentations
             data_set_path (str): path to file with list of images for dataset. Defined w.r.t. data_directory
             batch_size (int): batch size
+            shuffle (bool): indicates if samples should be shuffled
         """
 
         self.samples_paths = self._get_samples_paths(
@@ -32,6 +37,7 @@ class VOCSamplesDataLoader:
         )
 
         self.batch_size = batch_size
+        self.shuffle = shuffle
 
     def _get_samples_paths(
         self, images_directory: str, segmentations_directory: str, data_set_path
@@ -72,13 +78,21 @@ class VOCSamplesDataLoader:
         Iterator, yields tuples (images, segmentations)
         """
 
+        samples_paths_array = np.array(self.samples_paths)
+
         while True:
+
+            samples_indices = np.arange(len(self.samples_paths))
+
+            if self.shuffle is True:
+                random.shuffle(samples_indices)
 
             start_index = 0
 
-            while start_index < len(self.samples_paths):
+            while start_index < len(samples_indices):
 
-                samples_paths_batch = self.samples_paths[start_index: start_index + self.batch_size]
+                batch_indices = samples_indices[start_index: start_index + self.batch_size]
+                samples_paths_batch = samples_paths_array[batch_indices]
 
                 samples_batch = self._get_samples_batch(
                     samples_paths=samples_paths_batch

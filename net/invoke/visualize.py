@@ -27,7 +27,8 @@ def visualize_data(_context, config_path):
         images_directory=config["voc_data_images_directory"],
         segmentations_directory=config["voc_data_segmentations_directory"],
         data_set_path=config["voc_training_samples_list_path"],
-        batch_size=config["batch_size"]
+        batch_size=config["batch_size"],
+        shuffle=True
     )
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
