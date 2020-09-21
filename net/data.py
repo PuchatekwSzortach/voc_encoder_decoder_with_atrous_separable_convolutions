@@ -8,13 +8,18 @@ import typing
 import cv2
 import numpy as np
 
+import net.processing
+
 
 class VOCSamplesDataLoader:
     """
     Class for loading VOC samples
     """
 
-    def __init__(self, images_directory: str, segmentations_directory: str, data_set_path, batch_size: int) -> None:
+    def __init__(
+        self, images_directory: str, segmentations_directory: str, data_set_path, batch_size: int,
+        shuffle: bool
+            ) -> None:
         """
         Constructor
 
@@ -23,6 +28,7 @@ class VOCSamplesDataLoader:
             segmentations_directory (str): path to directory with segmentations
             data_set_path (str): path to file with list of images for dataset. Defined w.r.t. data_directory
             batch_size (int): batch size
+            shuffle (bool): indicates if samples should be shuffled
         """
 
         self.samples_paths = self._get_samples_paths(
@@ -32,6 +38,7 @@ class VOCSamplesDataLoader:
         )
 
         self.batch_size = batch_size
+        self.shuffle = shuffle
 
     def _get_samples_paths(
         self, images_directory: str, segmentations_directory: str, data_set_path
@@ -72,13 +79,18 @@ class VOCSamplesDataLoader:
         Iterator, yields tuples (images, segmentations)
         """
 
+        samples_paths_array = np.array(self.samples_paths)
+
         while True:
+
+            if self.shuffle is True:
+                np.random.shuffle(samples_paths_array)
 
             start_index = 0
 
-            while start_index < len(self.samples_paths):
+            while start_index < len(samples_paths_array):
 
-                samples_paths_batch = self.samples_paths[start_index: start_index + self.batch_size]
+                samples_paths_batch = samples_paths_array[start_index: start_index + self.batch_size]
 
                 samples_batch = self._get_samples_batch(
                     samples_paths=samples_paths_batch
@@ -145,4 +157,35 @@ class TrainingDataLoader:
 
             images, segmentations = next(iterator)
 
-            yield images, segmentations
+            yield self._process_batch(images, segmentations)
+
+    def _process_batch(self, images: np.ndarray, segmentations: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+        """
+        Process batch into format suitable for training
+
+        Args:
+            images (np.ndarray): batch of images
+            segmentations (np.ndarray): batch of segmentations
+        """
+
+        # Pad images and segmentations to a fixed size
+        processed_images = []
+        processed_segmentations = []
+
+        for image, segmentation in zip(images, segmentations):
+
+            processed_images.append(
+                net.processing.pad_to_size(
+                    image=image, size=512, color=(0, 0, 0)
+                )
+            )
+
+            processed_segmentations.append(
+                net.processing.pad_to_size(
+                    image=segmentation,
+                    size=512,
+                    color=(0, 0, 0)
+                )
+            )
+
+        return np.array(processed_images), np.array(processed_segmentations)
