@@ -133,17 +133,28 @@ class TrainingDataLoader:
     Data loader that yields batches (images, segmentations) suitable for training segmentation model
     """
 
-    def __init__(self, samples_data_loader: VOCSamplesDataLoader, use_training_mode: bool) -> None:
+    def __init__(
+            self, samples_data_loader: VOCSamplesDataLoader,
+            use_training_mode: bool,
+            size: int,
+            categories: typing.List[str]) -> None:
         """
         Constructor
 
         Args:
             samples_data_loader (VOCSamplesDataLoader): samples data loader
-            use_training_mode (bool): specifies if training or validation data mode should be used.
+            use_training_mode (bool): specifies if training or validation data mode should be used
+            size (int): size to which images should be padded in both directions
+            categories (typing.List[str]): list of categories
         """
 
         self.samples_data_loader = samples_data_loader
         self.use_training_model = use_training_mode
+        self.size = size
+        self.categories = categories
+
+        self.categories_to_indices_map = {category: index for index, category in enumerate(categories)}
+        self.indices_to_colors_map, self.void_color = get_colors_info(len(categories))
 
     def __len__(self):
 
@@ -176,16 +187,61 @@ class TrainingDataLoader:
 
             processed_images.append(
                 net.processing.pad_to_size(
-                    image=image, size=512, color=(0, 0, 0)
+                    image=image,
+                    size=self.size,
+                    color=self.indices_to_colors_map[self.categories_to_indices_map["background"]]
                 )
             )
 
             processed_segmentations.append(
                 net.processing.pad_to_size(
                     image=segmentation,
-                    size=512,
-                    color=(0, 0, 0)
+                    size=self.size,
+                    color=self.void_color
                 )
             )
 
         return np.array(processed_images), np.array(processed_segmentations)
+
+
+def get_colors_info(categories_count):
+    """
+    Get ids to colors dictionary and void color.
+    Ids to colors dictionary maps gives colors used in VOC dataset for a given category id.
+    Void color represents ambiguous regions in segmentations.
+    All colors are returned in BGR order.
+    Code adapted from https://gist.github.com/wllhf/a4533e0adebe57e3ed06d4b50c8419ae
+    :param categories_count: number of categories - includes background, but doesn't include void
+    :return: map, tuple
+    """
+
+    colors_count = 256
+
+    def bitget(byte_value, idx):
+        """
+        Check if bit at given byte index is set
+        :param byte_value: byte
+        :param idx: index
+        :return: bool
+        """
+        return (byte_value & (1 << idx)) != 0
+
+    colors_matrix = np.zeros(shape=(colors_count, 3), dtype=np.int)
+
+    for color_index in range(colors_count):
+
+        red = green = blue = 0
+        color = color_index
+
+        for j in range(8):
+
+            red = red | (bitget(color, 0) << 7 - j)
+            green = green | (bitget(color, 1) << 7 - j)
+            blue = blue | (bitget(color, 2) << 7 - j)
+            color = color >> 3
+
+        # Writing colors in BGR order, since our image reading and logging routines use it
+        colors_matrix[color_index] = blue, green, red
+
+    indices_to_colors_map = {color_index: tuple(colors_matrix[color_index]) for color_index in range(categories_count)}
+    return indices_to_colors_map, tuple(colors_matrix[-1])

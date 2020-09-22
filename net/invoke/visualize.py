@@ -42,14 +42,14 @@ def visualize_data(_context, config_path):
         logger.info(
             vlogging.VisualRecord(
                 title="images",
-                imgs=images.tolist()
+                imgs=list(images)
             )
         )
 
         logger.info(
             vlogging.VisualRecord(
                 title="segmentations",
-                imgs=segmentations.tolist()
+                imgs=list(segmentations)
             )
         )
 
@@ -82,7 +82,9 @@ def visualize_training_samples(_context, config_path):
 
     training_samples_data_loader = net.data.TrainingDataLoader(
         samples_data_loader=samples_data_loader,
-        use_training_mode=True
+        use_training_mode=True,
+        size=config["training_image_dimension"],
+        categories=config["categories"]
     )
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
@@ -97,7 +99,7 @@ def visualize_training_samples(_context, config_path):
             vlogging.VisualRecord(
                 title="images",
                 # Unpack np.array into a list of numpy arrays
-                imgs=[image for image in images]
+                imgs=list(images)
             )
         )
 
@@ -105,6 +107,6 @@ def visualize_training_samples(_context, config_path):
             vlogging.VisualRecord(
                 title="segmentations",
                 # Unpack np.array into a list of numpy arrays
-                imgs=[segmentation for segmentation in segmentations]
+                imgs=list(segmentations)
             )
         )
