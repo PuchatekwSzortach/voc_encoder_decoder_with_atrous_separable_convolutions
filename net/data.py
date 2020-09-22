@@ -160,15 +160,50 @@ class TrainingDataLoader:
 
         return len(self.samples_data_loader)
 
-    def __iter__(self):
+    def get_bgr_iterator(self) -> typing.Iterator[typing.Tuple[np.ndarray, np.ndarray]]:
+        """
+        Get iterator that yields (images, segmentations) such that segmentations are in 3 channel images
+        in (blue, green, red) order
+
+        Returns:
+            (typing.Iterator[typing.Tuple[np.ndarray, np.ndarray]]):
+            iterator that yields (images, segmentations) batches
+        """
 
         iterator = iter(self.samples_data_loader)
 
         while True:
 
             images, segmentations = next(iterator)
-
             yield self._process_batch(images, segmentations)
+
+    def __iter__(self) -> typing.Iterator[typing.Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        """
+        Iterator that yields tuples (images, sparse segmentations labels, segmentations masks), where
+        sparse segmentations labels are 2D numpy arrays with pixel values corresponding to categories,
+        and segmentations mask are 2D binary masks with 1 set to pixels that have represent valid segments,
+        and 0 set to pixels with vague segments/pixels to ignore during trainig.
+
+        Yields:
+            typing.Tuple[np.ndarray, np.ndarray, np.ndarray]: tuple (images, segmentations, segmentations masks)
+        """
+
+        iterator = self.get_bgr_iterator()
+
+        while True:
+
+            images, segmentations = next(iterator)
+
+            sparse_segmentations = [net.processing.get_sparse_segmentation_labels_image(
+                segmentation_image=segmentation,
+                indices_to_colors_map=self.indices_to_colors_map
+            ) for segmentation in segmentations]
+
+            # Masks that are set to 0 in pixels that have void color, and thus should be ignored during training
+            masks = [
+                np.all(segmentation != self.void_color, axis=-1).astype(np.int32) for segmentation in segmentations]
+
+            yield images, np.array(sparse_segmentations), np.array(masks)
 
     def _process_batch(self, images: np.ndarray, segmentations: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
