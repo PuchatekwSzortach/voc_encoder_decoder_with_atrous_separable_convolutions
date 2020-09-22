@@ -89,7 +89,7 @@ def visualize_training_samples(_context, config_path):
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
 
-    iterator = iter(training_samples_data_loader)
+    iterator = training_samples_data_loader.get_bgr_iterator()
 
     for _ in tqdm.tqdm(range(4)):
 

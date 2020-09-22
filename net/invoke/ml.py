@@ -39,7 +39,8 @@ def train(_context, config_path):
 
     for _ in range(4):
 
-        images, segmentations = next(iterator)
+        images, segmentations, masks = next(iterator)
         print(images.shape)
         print(segmentations.shape)
+        print(masks.shape)
         print()

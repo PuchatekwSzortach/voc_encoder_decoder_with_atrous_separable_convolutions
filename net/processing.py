@@ -37,3 +37,29 @@ def pad_to_size(image: np.ndarray, size: int, color: typing.Tuple[int, int, int]
 
     # Return canvas
     return canvas
+
+
+def get_sparse_segmentation_labels_image(
+        segmentation_image: np.ndarray,
+        indices_to_colors_map: typing.Dict[int, typing.Tuple[int, int, int]]) -> np.ndarray:
+    """
+    Creates a segmentation labels image that translates segmentation color to index value.
+    For each pixel without a reference color provided in indices_to_colors_map value 0 is used.
+
+    Args:
+        segmentation_image (np.ndarray): 3 channel (blue, green, red) segmentation image
+        indices_to_colors_map (typing.Dict[int, typing.Tuple[int, int, int]]): dictionary mapping categories
+        indices to colors
+
+    Returns:
+        np.ndarray: 2D numpy array of spare segmentation labels
+    """
+
+    segmentation_labels_image = np.zeros(segmentation_image.shape[:2])
+
+    for index, color in indices_to_colors_map.items():
+
+        color_pixels = np.all(segmentation_image == color, axis=2)
+        segmentation_labels_image[color_pixels] = index
+
+    return segmentation_labels_image
