@@ -30,7 +30,9 @@ def train(_context, config_path):
 
     training_samples_data_loader = net.data.TrainingDataLoader(
         samples_data_loader=samples_data_loader,
-        use_training_mode=True
+        use_training_mode=True,
+        size=config["training_image_dimension"],
+        categories=config["categories"]
     )
 
     iterator = iter(training_samples_data_loader)

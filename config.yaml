@@ -12,3 +12,27 @@ batch_size: 4
 # Dimension to which images will be padded during training, so that images of different original size
 # can be batched together
 training_image_dimension: 512
+
+categories:
+    ['background',
+    'aeroplane',
+    'bicycle',
+    'bird',
+    'boat',
+    'bottle',
+    'bus',
+    'car',
+    'cat',
+    'chair',
+    'cow',
+    'diningtable',
+    'dog',
+    'horse',
+    'motorbike',
+    'person',
+    'pottedplant',
+    'sheep',
+    'sofa',
+    'train',
+    'tvmonitor'
+    ]

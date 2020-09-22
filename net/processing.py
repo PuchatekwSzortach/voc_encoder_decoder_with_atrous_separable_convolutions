@@ -20,6 +20,7 @@ def pad_to_size(image: np.ndarray, size: int, color: typing.Tuple[int, int, int]
         np.array: padded images
     """
 
+    # Compute paddings
     total_vertical_padding = size - image.shape[0]
 
     upper_padding = total_vertical_padding // 2
@@ -30,10 +31,9 @@ def pad_to_size(image: np.ndarray, size: int, color: typing.Tuple[int, int, int]
     left_padding = total_horizontal_padding // 2
     right_padding = total_horizontal_padding - left_padding
 
-    return np.pad(
-        array=image,
-        pad_width=((upper_padding, lower_padding), (left_padding, right_padding), (0, 0)),
-        mode='constant',
-        # numpy requires a separate color definition for each padding axis and halve
-        constant_values=((color[0], color[0]), (color[0], color[0]), (color[0], color[0]))
-    )
+    # Create canvas with desired shape and background image, paste image on top of it
+    canvas = np.ones(shape=(size, size, 3)) * color
+    canvas[upper_padding:-lower_padding, left_padding:-right_padding, :] = image
+
+    # Return canvas
+    return canvas
