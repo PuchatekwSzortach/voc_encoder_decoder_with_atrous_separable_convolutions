@@ -16,6 +16,7 @@ def train(_context, config_path):
     """
 
     import net.data
+    import net.ml
     import net.utilities
 
     config = net.utilities.read_yaml(config_path)
@@ -36,11 +37,12 @@ def train(_context, config_path):
     )
 
     iterator = iter(training_samples_data_loader)
+    model = net.ml.DeepLabV3Builder().get_model()
 
     for _ in range(4):
 
-        images, segmentations, masks = next(iterator)
-        print(images.shape)
-        print(segmentations.shape)
-        print(masks.shape)
-        print()
+        images, _, _ = next(iterator)
+        print(f"images shape: {images.shape}")
+
+        predictions = model.predict(images)
+        print(f"predictions shape: {predictions.shape}\n")
