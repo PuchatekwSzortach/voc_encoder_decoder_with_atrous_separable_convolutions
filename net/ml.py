@@ -29,6 +29,7 @@ class DeepLabV3Builder:
         input_op = tf.keras.layers.Input(shape=(None, None, 3))
 
         x = self._get_entry_flow_segment(input_op=input_op)
+        x = self._get_middle_flow_segment(input_op=x)
 
         model = tf.keras.Model(
             inputs=input_op,
