@@ -5,7 +5,7 @@ Module with machine learning code
 import tensorflow as tf
 
 
-class DeepLabV3Builder:
+class DeepLabV3PlusBuilder:
     """
     Helper class for building DeepLabV3 model from
     "Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation" paper
@@ -28,12 +28,12 @@ class DeepLabV3Builder:
 
         input_op = tf.keras.layers.Input(shape=(None, None, 3))
 
-        x = self._get_entry_flow_segment(input_op=input_op)
-        x = self._get_middle_flow_segment(input_op=x)
+        features = self._get_features_extractor(input_op=input_op)
+        decoded_features = self._get_decoder(input_op=features)
 
         model = tf.keras.Model(
             inputs=input_op,
-            outputs=[x]
+            outputs=[decoded_features]
         )
 
         return model
@@ -79,15 +79,15 @@ class DeepLabV3Builder:
             filters=filters, kernel_size=(1, 1), strides=(2, 2), padding="same", activation=self.activation
         )(input_op)
 
-        x = tf.keras.layers.Conv2D(
+        x = tf.keras.layers.SeparableConv2D(
             filters=filters, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(input_op)
 
-        x = tf.keras.layers.Conv2D(
+        x = tf.keras.layers.SeparableConv2D(
             filters=filters, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(input_op)
 
-        x = tf.keras.layers.Conv2D(
+        x = tf.keras.layers.SeparableConv2D(
             filters=filters, kernel_size=(3, 3), strides=(2, 2), padding="same", activation=self.activation
         )(input_op)
 
@@ -129,9 +129,107 @@ class DeepLabV3Builder:
 
         for _ in range(3):
 
-            x = tf.keras.layers.Conv2D(
+            x = tf.keras.layers.SeparableConv2D(
                 filters=728, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
             )(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
         return x + input_op
+
+    def _get_exit_flow_segment(self, input_op: tf.Tensor) -> tf.Tensor:
+        """
+        Get exit flow segment part of the network
+
+        Args:
+            input_op (tf.Tensor): input op into the segment
+
+        Returns:
+            tf.Tensor: output op
+        """
+
+        skip_connection = tf.keras.layers.Conv2D(
+            filters=1024, kernel_size=(1, 1), strides=(2, 2), padding="same", activation=self.activation
+        )(input_op)
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=728, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(input_op)
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=1024, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=1024, kernel_size=(3, 3), strides=(2, 2), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.keras.layers.BatchNormalization()(x)
+
+        x = x + skip_connection
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=1536, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=1536, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.keras.layers.SeparableConv2D(
+            filters=2048, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        return x
+
+    def _get_features_extractor(self, input_op) -> tf.Tensor:
+        """
+        Get feature extractor
+
+        Args:
+            input_op (tf.Tensor): input tensor
+
+        Returns:
+            tf.Tensor: output op
+        """
+
+        x = self._get_entry_flow_segment(input_op=input_op)
+        x = self._get_middle_flow_segment(input_op=x)
+        x = self._get_exit_flow_segment(input_op=x)
+        return x
+
+    def _get_decoder(self, input_op: tf.Tensor) -> tf.Tensor:
+        """
+        Get decoder
+
+        Args:
+            input_op (tf.Tensor): input tensor
+
+        Returns:
+            tf.Tensor: output op
+        """
+
+        x = tf.keras.layers.Conv2D(
+            filters=512, kernel_size=(1, 1), strides=(1, 1), padding="same", activation=self.activation
+        )(input_op)
+
+        x = tf.image.resize(
+            images=x,
+            size=(4 * tf.shape(x)[1], 4 * tf.shape(x)[2]),
+            method=tf.image.ResizeMethod.BILINEAR
+        )
+
+        x = tf.keras.layers.Conv2D(
+            filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.keras.layers.Conv2D(
+            filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+        )(x)
+
+        x = tf.image.resize(
+            images=x,
+            size=(4 * tf.shape(x)[1], 4 * tf.shape(x)[2]),
+            method=tf.image.ResizeMethod.BILINEAR
+        )
+
+        return x

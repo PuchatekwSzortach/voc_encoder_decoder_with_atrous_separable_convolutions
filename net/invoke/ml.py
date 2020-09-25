@@ -37,7 +37,7 @@ def train(_context, config_path):
     )
 
     iterator = iter(training_samples_data_loader)
-    model = net.ml.DeepLabV3Builder().get_model()
+    model = net.ml.DeepLabV3PlusBuilder().get_model()
 
     for _ in range(4):
 
