@@ -18,9 +18,12 @@ class DeepLabV3PlusBuilder:
 
         self.activation = tf.nn.swish
 
-    def get_model(self) -> tf.keras.Model:
+    def get_model(self, categories_count: int) -> tf.keras.Model:
         """
         Model builder functions
+
+        Args:
+            categories_count (int): number of categories to predict, including background
 
         Returns:
             tf.keras.Model: DeepLabV3 model
@@ -31,9 +34,19 @@ class DeepLabV3PlusBuilder:
         features = self._get_features_extractor(input_op=input_op)
         decoded_features = self._get_decoder(input_op=features)
 
+        predictions_op = tf.keras.layers.Conv2D(
+            filters=categories_count, kernel_size=(3, 3), strides=(1, 1), padding='same', activation=tf.nn.softmax
+        )(decoded_features)
+
         model = tf.keras.Model(
             inputs=input_op,
-            outputs=[decoded_features]
+            outputs=[predictions_op]
+        )
+
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']
         )
 
         return model
@@ -57,7 +70,7 @@ class DeepLabV3PlusBuilder:
             filters=64, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(input_op)
 
-        for filters in [128, 256, 728]:
+        for filters in [128, 256, 512]:
 
             x = self._get_entry_flow_block(input_op=x, filters=filters)
 
@@ -108,7 +121,8 @@ class DeepLabV3PlusBuilder:
 
         x = input_op
 
-        for _ in range(16):
+        # for _ in range(16):
+        for _ in range(4):
 
             x = self._get_middle_flow_block(input_op=x)
 
@@ -130,7 +144,7 @@ class DeepLabV3PlusBuilder:
         for _ in range(3):
 
             x = tf.keras.layers.SeparableConv2D(
-                filters=728, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+                filters=512, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
             )(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
@@ -148,19 +162,19 @@ class DeepLabV3PlusBuilder:
         """
 
         skip_connection = tf.keras.layers.Conv2D(
-            filters=1024, kernel_size=(1, 1), strides=(2, 2), padding="same", activation=self.activation
+            filters=512, kernel_size=(1, 1), strides=(2, 2), padding="same", activation=self.activation
         )(input_op)
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=728, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+            filters=512, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(input_op)
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=1024, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+            filters=512, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(x)
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=1024, kernel_size=(3, 3), strides=(2, 2), padding="same", activation=self.activation
+            filters=512, kernel_size=(3, 3), strides=(2, 2), padding="same", activation=self.activation
         )(x)
 
         x = tf.keras.layers.BatchNormalization()(x)
@@ -168,15 +182,15 @@ class DeepLabV3PlusBuilder:
         x = x + skip_connection
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=1536, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+            filters=1024, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(x)
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=1536, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+            filters=1024, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(x)
 
         x = tf.keras.layers.SeparableConv2D(
-            filters=2048, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
+            filters=1024, kernel_size=(3, 3), strides=(1, 1), padding="same", activation=self.activation
         )(x)
 
         return x

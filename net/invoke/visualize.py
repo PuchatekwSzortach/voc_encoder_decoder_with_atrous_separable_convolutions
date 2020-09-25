@@ -89,16 +89,15 @@ def visualize_training_samples(_context, config_path):
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
 
-    iterator = training_samples_data_loader.get_bgr_iterator()
+    iterator = iter(training_samples_data_loader)
 
-    for _ in tqdm.tqdm(range(4)):
+    for _ in tqdm.tqdm(range(10)):
 
-        images, segmentations = next(iterator)
+        images, segmentations, masks = next(iterator)
 
         logger.info(
             vlogging.VisualRecord(
                 title="images",
-                # Unpack np.array into a list of numpy arrays
                 imgs=list(images)
             )
         )
@@ -106,7 +105,13 @@ def visualize_training_samples(_context, config_path):
         logger.info(
             vlogging.VisualRecord(
                 title="segmentations",
-                # Unpack np.array into a list of numpy arrays
-                imgs=list(segmentations)
+                imgs=[10 * image for image in segmentations]
+            )
+        )
+
+        logger.info(
+            vlogging.VisualRecord(
+                title="masks",
+                imgs=[255 * image for image in masks]
             )
         )
