@@ -15,13 +15,15 @@ def train(_context, config_path):
         config_path (str): path to configuration file
     """
 
+    import tensorflow as tf
+
     import net.data
     import net.ml
     import net.utilities
 
     config = net.utilities.read_yaml(config_path)
 
-    samples_data_loader = net.data.VOCSamplesDataLoader(
+    trainig_voc_samples_data_loader = net.data.VOCSamplesDataLoader(
         images_directory=config["voc_data_images_directory"],
         segmentations_directory=config["voc_data_segmentations_directory"],
         data_set_path=config["voc_training_samples_list_path"],
@@ -30,19 +32,51 @@ def train(_context, config_path):
     )
 
     training_samples_data_loader = net.data.TrainingDataLoader(
-        samples_data_loader=samples_data_loader,
+        samples_data_loader=trainig_voc_samples_data_loader,
         use_training_mode=True,
         size=config["training_image_dimension"],
         categories=config["categories"]
     )
 
-    iterator = iter(training_samples_data_loader)
-    model = net.ml.DeepLabV3Builder().get_model()
+    training_dataset = tf.data.Dataset.from_generator(
+        generator=lambda: iter(training_samples_data_loader),
+        output_types=(tf.float32, tf.float32, tf.float32),
+        output_shapes=(
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
+    ).prefetch(4)
 
-    for _ in range(4):
+    validation_voc_samples_data_loader = net.data.VOCSamplesDataLoader(
+        images_directory=config["voc_data_images_directory"],
+        segmentations_directory=config["voc_data_segmentations_directory"],
+        data_set_path=config["voc_validation_samples_list_path"],
+        batch_size=config["batch_size"],
+        shuffle=False
+    )
 
-        images, _, _ = next(iterator)
-        print(f"images shape: {images.shape}")
+    validation_samples_data_loader = net.data.TrainingDataLoader(
+        samples_data_loader=validation_voc_samples_data_loader,
+        use_training_mode=True,
+        size=config["training_image_dimension"],
+        categories=config["categories"]
+    )
 
-        predictions = model.predict(images)
-        print(f"predictions shape: {predictions.shape}\n")
+    validation_dataset = tf.data.Dataset.from_generator(
+        generator=lambda: iter(validation_samples_data_loader),
+        output_types=(tf.float32, tf.float32, tf.float32),
+        output_shapes=(
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
+            tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
+    ).prefetch(4)
+
+    model = net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
+
+    model.fit(
+        x=training_dataset,
+        epochs=10,
+        steps_per_epoch=len(training_samples_data_loader),
+        validation_data=validation_dataset,
+        validation_steps=len(validation_samples_data_loader)
+    )

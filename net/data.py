@@ -125,7 +125,7 @@ class VOCSamplesDataLoader:
                 cv2.imread(segmentation_path)
             )
 
-        return np.array(images), np.array(segmentations)
+        return images, segmentations
 
 
 class TrainingDataLoader:
