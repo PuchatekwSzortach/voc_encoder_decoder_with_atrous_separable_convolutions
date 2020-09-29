@@ -33,7 +33,7 @@ def pad_to_size(image: np.ndarray, size: int, color: typing.Tuple[int, int, int]
 
     # Create canvas with desired shape and background image, paste image on top of it
     canvas = np.ones(shape=(size, size, 3)) * color
-    canvas[upper_padding:-lower_padding, left_padding:-right_padding, :] = image
+    canvas[upper_padding:size - lower_padding, left_padding:size - right_padding, :] = image
 
     # Return canvas
     return canvas
@@ -63,3 +63,24 @@ def get_sparse_segmentation_labels_image(
         segmentation_labels_image[color_pixels] = index
 
     return segmentation_labels_image
+
+
+def get_dense_segmentation_labels_image(
+        segmentation_image: np.ndarray,
+        indices_to_colors_map: typing.Dict[int, typing.Tuple[int, int, int]]) -> np.ndarray:
+    """
+    Given sparse encoded segmentations image, convert it to bgr segmentations image
+
+    Args:
+        segmentation_image (np.ndarray): 2D array, sparse encoded segmentation image
+        indices_to_colors_map (dict): dictionary mapping categories indices to bgr colors
+
+    Returns:
+        [np.ndarray]: 3D BGR segmentation image
+    """
+
+    bgr_segmentation_image = np.zeros(
+        shape=(segmentation_image.shape[0], segmentation_image.shape[1], 3),
+        dtype=np.uint8)
+
+    return bgr_segmentation_image
