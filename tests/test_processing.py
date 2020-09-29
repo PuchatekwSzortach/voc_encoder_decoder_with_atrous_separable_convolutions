@@ -34,3 +34,31 @@ def test_get_sparse_segmentation_labels_image():
     actual = net.processing.get_sparse_segmentation_labels_image(segmentation_image, indices_to_colors_map)
 
     assert np.all(expected == actual)
+
+
+def test_get_dense_segmentation_labels_image():
+    """
+    Test get_dense_segmentation_labels_image
+    """
+
+    segmentation_image = np.array([
+        [4, 1, 2, 2],
+        [2, 2, 3, 3]
+    ], dtype=np.uint8)
+
+    indices_to_colors_map = {
+        1: [10, 10, 10],
+        2: [20, 20, 20],
+        3: [30, 30, 30],
+        4: [40, 40, 40],
+    }
+
+    expected = np.array([
+        [[40, 40, 40], [10, 10, 10], [20, 20, 20], [20, 20, 20]],
+        [[20, 20, 20], [20, 20, 20], [30, 30, 30], [30, 30, 30]],
+    ], dtype=np.uint8)
+
+    actual = net.processing.get_dense_segmentation_labels_image(
+        segmentation_image, indices_to_colors_map)
+
+    assert np.all(expected == actual)
