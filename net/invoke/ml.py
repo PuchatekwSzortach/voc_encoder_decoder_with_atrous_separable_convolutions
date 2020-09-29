@@ -45,7 +45,7 @@ def train(_context, config_path):
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
-    ).prefetch(4)
+    ).prefetch(10)
 
     validation_voc_samples_data_loader = net.data.VOCSamplesDataLoader(
         images_directory=config["voc_data_images_directory"],
@@ -69,7 +69,7 @@ def train(_context, config_path):
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
             tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
-    ).prefetch(4)
+    ).prefetch(10)
 
     model = net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
 
@@ -78,5 +78,22 @@ def train(_context, config_path):
         epochs=10,
         steps_per_epoch=len(training_samples_data_loader),
         validation_data=validation_dataset,
-        validation_steps=len(validation_samples_data_loader)
+        validation_steps=len(validation_samples_data_loader),
+        callbacks=[
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=config["current_model_directory"],
+                save_best_only=True,
+                save_weights_only=False,
+                verbose=1),
+            tf.keras.callbacks.EarlyStopping(
+                patience=15,
+                verbose=1),
+            tf.keras.callbacks.ReduceLROnPlateau(
+                factor=0.1,
+                patience=6,
+                verbose=1),
+            tf.keras.callbacks.CSVLogger(
+                filename=config["training_metrics_log_path"]
+            )
+        ]
     )

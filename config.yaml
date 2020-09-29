@@ -1,11 +1,14 @@
 data_directory_on_host: "../../data"
-
 voc_data_images_directory: "/data/VOC2012/JPEGImages"
 voc_data_segmentations_directory: "/data/VOC2012/SegmentationClass"
 voc_training_samples_list_path: "/data/VOC2012/ImageSets/Segmentation/train.txt"
 voc_validation_samples_list_path: "/data/VOC2012/ImageSets/Segmentation/val.txt"
-
 harikaran_data_images_directory: "/data/hariharan_semantic_contours_dataset/dataset/img"
+
+models_directory_on_host: "../../data/voc_encoder_decoder_models"
+current_model_directory: "/models/current_model"
+
+training_metrics_log_path: "/tmp/training_metrics.txt"
 
 batch_size: 4
 
