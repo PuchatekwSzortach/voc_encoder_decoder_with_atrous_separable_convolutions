@@ -83,4 +83,9 @@ def get_dense_segmentation_labels_image(
         shape=(segmentation_image.shape[0], segmentation_image.shape[1], 3),
         dtype=np.uint8)
 
+    for index, color in indices_to_colors_map.items():
+
+        mask = segmentation_image == index
+        bgr_segmentation_image[mask] = color
+
     return bgr_segmentation_image
