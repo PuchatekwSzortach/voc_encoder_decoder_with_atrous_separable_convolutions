@@ -56,7 +56,7 @@ def build_app_container(context):
     """
 
     command = (
-        "docker build "
+        "DOCKER_BUILDKIT=1 docker build "
         "--tag puchatek_w_szortach/voc_encoder_decoder_with_atrous_separable_convolutions:latest "
         "-f ./docker/app.Dockerfile ."
     )
