@@ -86,11 +86,11 @@ def train(_context, config_path):
                 save_weights_only=False,
                 verbose=1),
             tf.keras.callbacks.EarlyStopping(
-                patience=15,
+                patience=4,
                 verbose=1),
             tf.keras.callbacks.ReduceLROnPlateau(
                 factor=0.1,
-                patience=6,
+                patience=3,
                 verbose=1),
             tf.keras.callbacks.CSVLogger(
                 filename=config["training_metrics_log_path"]

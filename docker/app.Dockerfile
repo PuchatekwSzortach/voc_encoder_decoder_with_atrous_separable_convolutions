@@ -1,28 +1,29 @@
-FROM tensorflow/tensorflow:2.2.0-gpu
+# syntax = docker/dockerfile:experimental
+
+FROM tensorflow/tensorflow:2.3.1-gpu
 
 # Install a few useful libs and apps
 RUN apt update && apt install -y wget vim
 
+# Download base tensorflow model to app_user's folder, change permission so he can use it
+RUN mkdir -p /root/.keras/models && \
+    wget https://storage.googleapis.com/tensorflow/keras-applications/resnet/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 \
+        -O /root/.keras/models/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5
+
 # Install python environment
 COPY ./requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
-
-# Add user for the container
-RUN useradd -u 1010 -ms /bin/bash app_user
+RUN --mount=type=cache,mode=0777,target=/root/.cache/pip pip install -r /tmp/requirements.txt
 
 # Setup bashrc for app user
-COPY ./docker/bashrc /home/app_user/.bashrc
+COPY ./docker/bashrc /root/.bashrc
 
-ENV PATH=$PATH:/home/app_user/.local/bin
+ENV PATH=$PATH:/root/.local/bin
 
 # Setup PYTHONPATH
 ENV PYTHONPATH=.
 
 # Tensorflow keeps on using deprecated APIs ^^
 ENV PYTHONWARNINGS="ignore::DeprecationWarning:tensorflow"
-
-# Select user container should be run with
-USER app_user
 
 # Set up working directory
 WORKDIR /app
