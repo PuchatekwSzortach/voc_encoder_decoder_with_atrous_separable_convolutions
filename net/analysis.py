@@ -64,10 +64,10 @@ class ModelAnalyzer:
                 categories_intersections_counts[category] += batch_categories_intersections_counts[category]
                 categories_unions_counts[category] += batch_categories_unions_counts[category]
 
-        print("Intersection over union across categories")
-        for category in self.categories:
-
-            print(f"{category}: {categories_intersections_counts[category] / categories_unions_counts[category]:.4f}")
+        self._report_iou_results(
+            categories_intersections_counts=categories_intersections_counts,
+            categories_unions_counts=categories_unions_counts
+        )
 
     def _get_iou_results_for_single_batch(self, iterator):
         """
@@ -101,3 +101,29 @@ class ModelAnalyzer:
                     np.sum(np.logical_or(sparse_ground_truth_segmentation == index, sparse_prediction == index))
 
         return categories_intersections_counts, categories_unions_counts
+
+    def _report_iou_results(
+            self,
+            categories_intersections_counts: typing.Dict[str, int],
+            categories_unions_counts: typing.Dict[str, int]):
+        """
+        Format and report intersection over union results
+
+        Args:
+            categories_intersections_counts (typing.Dict[int]):
+            dictionary mapping categories to intersection pixels counts
+            categories_unions_counts (typing.Dict[int]):
+            dictionary mapping categories to union pixels counts
+        """
+
+        categories_intersections_over_unions = {
+            category: categories_intersections_counts[category] / categories_unions_counts[category]
+            for category in self.categories
+        }
+
+        print("Intersection over union across categories")
+        for category in self.categories:
+
+            print(f"{category}: {categories_intersections_over_unions[category]:.4f}")
+
+        print(f"\nMean intersection over union: {np.mean(list(categories_intersections_over_unions.values())):.4f}")
