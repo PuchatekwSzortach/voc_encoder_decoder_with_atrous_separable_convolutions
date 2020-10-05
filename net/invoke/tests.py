@@ -24,7 +24,6 @@ def static_code_analysis(context):
 
     context.run("pycodestyle {}".format(directories), echo=True)
     context.run("xenon . --max-absolute B", echo=True)
-    context.run("mypy .", echo=True)
     context.run("pylint {}".format(directories), echo=True)
 
 

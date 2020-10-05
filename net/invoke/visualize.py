@@ -140,7 +140,8 @@ def visualize_predictions(_context, config_path):
     data_loader = net.data.VOCSamplesDataLoader(
         images_directory=config["voc_data_images_directory"],
         segmentations_directory=config["voc_data_segmentations_directory"],
-        data_set_path=config["voc_training_samples_list_path"],
+        # data_set_path=config["voc_training_samples_list_path"],
+        data_set_path=config["voc_validation_samples_list_path"],
         batch_size=config["batch_size"],
         shuffle=True
     )
