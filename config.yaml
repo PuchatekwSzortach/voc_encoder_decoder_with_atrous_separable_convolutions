@@ -10,7 +10,7 @@ current_model_directory: "/models/current_model"
 
 training_metrics_log_path: "/tmp/training_metrics.txt"
 
-batch_size: 4
+batch_size: 8
 
 # Dimension to which images will be padded during training, so that images of different original size
 # can be batched together
