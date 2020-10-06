@@ -49,12 +49,13 @@ def log_predictions(
         )
     )
 
+    indices_to_colors_map = net.data.get_colors_info(categories_count=len(categories))[0]
+
     one_hot_encoded_predictions = [prediction_model.predict(np.array([image]))[0] for image in images]
 
     bgr_predictions = [net.processing.get_dense_segmentation_labels_image(
         segmentation_image=np.argmax(prediction, axis=-1),
-        indices_to_colors_map=net.data.get_colors_info(categories_count=len(categories))[0]
-        ) for prediction in one_hot_encoded_predictions]
+        indices_to_colors_map=indices_to_colors_map) for prediction in one_hot_encoded_predictions]
 
     logger.info(
         vlogging.VisualRecord(

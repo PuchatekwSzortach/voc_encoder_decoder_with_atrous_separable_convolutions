@@ -57,7 +57,7 @@ def train(_context, config_path):
 
     validation_samples_data_loader = net.data.TrainingDataLoader(
         samples_data_loader=validation_voc_samples_data_loader,
-        use_training_mode=True,
+        use_training_mode=False,
         size=config["training_image_dimension"],
         categories=config["categories"]
     )

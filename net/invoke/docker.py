@@ -65,7 +65,7 @@ def build_app_container(context):
 
 
 @invoke.task
-def up(context, config_path):
+def compose_up(context, config_path):
     """
     Runs docker-compose up, providing it with values for environmental variables
 
