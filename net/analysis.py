@@ -82,23 +82,30 @@ class ModelAnalyzer:
 
         images, ground_truth_segmentations, masks = next(iterator)
 
+        # Our iterator returns tensor objects, but we want plain numpy arrays
+        ground_truth_segmentations = ground_truth_segmentations.numpy()
+        masks = masks.numpy()
+
         predictions = self.prediction_model.predict(images)
 
         categories_intersections_counts = collections.defaultdict(int)
         categories_unions_counts = collections.defaultdict(int)
 
-        for ground_truth_segmentation, mask, prediction in zip(ground_truth_segmentations, masks, predictions):
+        # Set pixels where mask is false to -1 - that is color index that isn't used by any category.
+        # We can't just use 0, since that is color index of background category
+        ground_truth_segmentations[masks == 0] = -1
+        sparse_predictions = np.argmax(predictions, axis=-1)
+        sparse_predictions[masks == 0] = -1
+
+        for ground_truth_segmentation, sparse_prediction in zip(ground_truth_segmentations, sparse_predictions):
 
             for index, category in enumerate(self.categories):
 
-                sparse_ground_truth_segmentation = ground_truth_segmentation * mask
-                sparse_prediction = np.argmax(prediction, axis=-1)
-
                 categories_intersections_counts[category] += \
-                    np.sum(np.logical_and(sparse_ground_truth_segmentation == index, sparse_prediction == index))
+                    np.sum(np.logical_and(ground_truth_segmentation == index, sparse_prediction == index))
 
                 categories_unions_counts[category] += \
-                    np.sum(np.logical_or(sparse_ground_truth_segmentation == index, sparse_prediction == index))
+                    np.sum(np.logical_or(ground_truth_segmentation == index, sparse_prediction == index))
 
         return categories_intersections_counts, categories_unions_counts
 
