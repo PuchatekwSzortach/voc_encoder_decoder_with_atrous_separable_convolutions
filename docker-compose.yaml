@@ -10,5 +10,15 @@ services:
         volumes:
             - log_data:/usr/share/nginx/html
 
+    mlflow:
+        container_name: "voc_mlflow"
+        image: "larribas/mlflow:1.9.1"
+        command: --host 0.0.0.0 --backend-store-uri file:///data
+        ports:
+            - "5050:5000"
+        volumes:
+            - mlflow_data:/data
+
 volumes:
     log_data:
+    mlflow_data:
