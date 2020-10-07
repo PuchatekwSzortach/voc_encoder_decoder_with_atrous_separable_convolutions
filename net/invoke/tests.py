@@ -102,3 +102,34 @@ def inserts_count_check(context):
     if additions_count > threshold:
 
         raise ValueError("Exceeded max inserts count")
+
+
+@invoke.task
+def mlflow_experiment(_context, config_path):
+    """
+    A very simple mlflow logging example
+
+    Args:
+        _context (invoke.Context): context instance
+        config_path (str): path to configuration file
+    """
+
+    import mlflow
+
+    import net.utilities
+
+    config = net.utilities.read_yaml(config_path)
+
+    mlflow.set_tracking_uri(config["mlflow_tracking_uri"])
+    mlflow.set_experiment("simple_experiment")
+
+    with mlflow.start_run(run_name="simple_run"):
+
+        print("started run")
+
+        for index in range(10):
+            print(f"logging index {index}")
+
+            mlflow.log_metric("index", index)
+            mlflow.log_metric("index square", index ** 2)
+            mlflow.log_metric("index low", 1 / (1 + index))

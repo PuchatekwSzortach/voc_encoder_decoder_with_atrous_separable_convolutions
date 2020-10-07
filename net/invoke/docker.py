@@ -32,15 +32,21 @@ def run(context, config_path):
         "models_directory_on_host": os.path.abspath(config["models_directory_on_host"]),
         # A bit of sourcery to create data volume that can be shared with docker-compose containers
         "log_data_volume": os.path.basename(os.path.abspath('.') + '_log_data'),
+        "network_name": os.path.basename(os.path.abspath(os.path.curdir)) + "_default"
     }
 
     command = (
         "docker run -it --rm "
+        # Attach container to same network as docker-compose set up for backend services
+        "--net {network_name} "
         "{gpu_capabilities} "
         "-v $PWD:/app:delegated "
         "-v {data_directory_on_host}:/data "
         "-v {models_directory_on_host}:/models "
         "-v {log_data_volume}:/tmp "
+        # We don't expose .git directory to app container,
+        # but mlflow client tries to acess it, so tell to be quiet when it fails
+        "--env GIT_PYTHON_REFRESH=quiet "
         "puchatek_w_szortach/voc_encoder_decoder_with_atrous_separable_convolutions:latest /bin/bash"
     ).format(**run_options)
 
