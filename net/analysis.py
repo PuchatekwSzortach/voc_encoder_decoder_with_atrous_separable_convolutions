@@ -5,6 +5,7 @@ Module with analysis functionality
 import collections
 import typing
 
+import mlflow
 import numpy as np
 import tensorflow as tf
 import tqdm
@@ -19,6 +20,7 @@ class ModelAnalyzer:
 
     def __init__(
             self,
+            mlflow_tracking_uri: str,
             prediction_model: tf.keras.Model,
             data_loader: net.data.TrainingDataLoader,
             categories: typing.List[str]) -> None:
@@ -26,11 +28,13 @@ class ModelAnalyzer:
         Constructor
 
         Args:
+            mlflow_tracking_uri (str): uri to mlflow server to which results should be sent
             prediction_model (tf.keras.Model): prediction model
             data_loader (net.data.TrainingDataLoader): data loader instance
             categories (typing.List[str]): list of categories
         """
 
+        self.mlflow_tracking_uri = mlflow_tracking_uri
         self.prediction_model = prediction_model
         self.data_loader = data_loader
         self.categories = categories
@@ -123,14 +127,24 @@ class ModelAnalyzer:
             dictionary mapping categories to union pixels counts
         """
 
-        categories_intersections_over_unions = {
-            category: categories_intersections_counts[category] / categories_unions_counts[category]
-            for category in self.categories
-        }
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+        mlflow.set_experiment("analysis")
 
-        print("Intersection over union across categories")
-        for category in self.categories:
+        with mlflow.start_run(run_name="simple_run"):
 
-            print(f"{category}: {categories_intersections_over_unions[category]:.4f}")
+            categories_intersections_over_unions = {
+                category: categories_intersections_counts[category] / categories_unions_counts[category]
+                for category in self.categories
+            }
 
-        print(f"\nMean intersection over union: {np.mean(list(categories_intersections_over_unions.values())):.4f}")
+            mlflow.log_params(categories_intersections_over_unions)
+
+            print("Intersection over union across categories")
+            for category in self.categories:
+
+                print(f"{category}: {categories_intersections_over_unions[category]:.4f}")
+
+            mean_intersection_over_union = np.mean(list(categories_intersections_over_unions.values()))
+
+            print(f"\nMean intersection over union: {mean_intersection_over_union:.4f}")
+            mlflow.log_param("mean intersection over union", mean_intersection_over_union)

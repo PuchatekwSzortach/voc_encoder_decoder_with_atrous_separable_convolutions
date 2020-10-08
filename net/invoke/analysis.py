@@ -74,6 +74,7 @@ def analyze_model(_context, config_path):
     prediction_model = tf.keras.models.load_model(filepath=config["current_model_directory"])
 
     net.analysis.ModelAnalyzer(
+        mlflow_tracking_uri=config["mlflow_tracking_uri"],
         prediction_model=prediction_model,
         data_loader=validation_samples_data_loader,
         categories=config["categories"]
