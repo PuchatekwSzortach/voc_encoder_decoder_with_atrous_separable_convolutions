@@ -2,11 +2,11 @@
 Module with logging utilities
 """
 
-import math
-
 import logging
+import math
 import typing
 
+import cv2
 import numpy as np
 import tensorflow as tf
 import vlogging
@@ -38,14 +38,14 @@ def log_predictions(
     logger.info(
         vlogging.VisualRecord(
             title="images",
-            imgs=list(images)
+            imgs=[cv2.pyrDown(image) for image in images]
         )
     )
 
     logger.info(
         vlogging.VisualRecord(
             title="ground truth segmentations",
-            imgs=list(ground_truth_segmentations)
+            imgs=[cv2.pyrDown(image) for image in ground_truth_segmentations]
         )
     )
 
@@ -60,6 +60,6 @@ def log_predictions(
     logger.info(
         vlogging.VisualRecord(
             title="segmentations predictions",
-            imgs=bgr_predictions
+            imgs=[cv2.pyrDown(image) for image in bgr_predictions]
         )
     )
