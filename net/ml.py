@@ -285,7 +285,7 @@ class NewDeepLabBuilder:
         decoded_features = self._get_decoder(input_op=x, categories_count=categories_count)
 
         predictions_op = tf.keras.layers.Conv2D(
-            filters=categories_count, kernel_size=(3, 3), strides=(1, 1), padding='same', activation=tf.nn.softmax
+            filters=categories_count, kernel_size=(1, 1), strides=(1, 1), padding='same', activation=tf.nn.softmax
         )(decoded_features)
 
         model = tf.keras.Model(
@@ -294,7 +294,7 @@ class NewDeepLabBuilder:
         )
 
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )

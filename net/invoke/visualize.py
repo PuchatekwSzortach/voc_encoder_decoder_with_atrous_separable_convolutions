@@ -64,6 +64,7 @@ def visualize_training_samples(_context, config_path):
         config_path (str): path to configuration file
     """
 
+    import cv2
     import tqdm
     import vlogging
 
@@ -98,21 +99,21 @@ def visualize_training_samples(_context, config_path):
         logger.info(
             vlogging.VisualRecord(
                 title="images",
-                imgs=list(images)
+                imgs=[cv2.pyrDown(image) for image in images]
             )
         )
 
         logger.info(
             vlogging.VisualRecord(
                 title="segmentations",
-                imgs=[10 * image for image in segmentations]
+                imgs=[10 * cv2.pyrDown(image) for image in segmentations]
             )
         )
 
         logger.info(
             vlogging.VisualRecord(
                 title="masks",
-                imgs=[255 * image for image in masks]
+                imgs=[255 * cv2.pyrDown(image) for image in masks]
             )
         )
 
