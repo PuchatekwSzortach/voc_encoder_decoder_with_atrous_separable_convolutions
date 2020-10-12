@@ -313,17 +313,7 @@ class NewDeepLabBuilder:
             tf.Tensor: output op
         """
 
-        x = tf.keras.layers.SeparableConv2D(
-            filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same",
-            dilation_rate=(12, 12), activation=self.activation)(input_op)
-
-        x = tf.keras.layers.SeparableConv2D(
-            filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same",
-            dilation_rate=(1, 1), activation=self.activation)(x)
-
-        x = tf.keras.layers.SeparableConv2D(
-            filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same",
-            dilation_rate=(1, 1), activation=self.activation)(x)
+        x = self._get_atrous_spacial_pooling_pyramid_output(input_op)
 
         x = tf.keras.layers.BatchNormalization()(x)
 
@@ -337,6 +327,8 @@ class NewDeepLabBuilder:
             filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same",
             dilation_rate=(1, 1), activation=self.activation)(x)
 
+        x = tf.keras.layers.BatchNormalization()(x)
+
         x = tf.keras.layers.SeparableConv2D(
             filters=categories_count, kernel_size=(1, 1), strides=(1, 1), padding="same",
             dilation_rate=(1, 1), activation=None)(x)
@@ -348,3 +340,35 @@ class NewDeepLabBuilder:
         )
 
         return x
+
+    def _get_atrous_spacial_pooling_pyramid_output(self, input_op: tf.Tensor) -> tf.Tensor:
+        """
+        Get atrous spacial pooling pyramid output
+
+        Args:
+            input_op (tf.Tensor): input tensor
+
+        Returns:
+            tf.Tensor: output op
+        """
+
+        dilation_rates = [6, 12, 18, 24]
+        outputs = []
+
+        for dilation_rate in dilation_rates:
+
+            x = tf.keras.layers.SeparableConv2D(
+                filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same",
+                dilation_rate=(dilation_rate, dilation_rate), activation=self.activation)(input_op)
+
+            x = tf.keras.layers.SeparableConv2D(
+                filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same",
+                dilation_rate=(1, 1), activation=self.activation)(x)
+
+            x = tf.keras.layers.SeparableConv2D(
+                filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same",
+                dilation_rate=(1, 1), activation=self.activation)(x)
+
+            outputs.append(x)
+
+        return tf.concat(outputs, axis=-1)

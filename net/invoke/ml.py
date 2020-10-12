@@ -53,7 +53,7 @@ def train(_context, config_path):
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
-        ).prefetch(10)
+        ).prefetch(32)
 
         validation_voc_samples_data_loader = net.data.VOCSamplesDataLoader(
             images_directory=config["voc_data_images_directory"],
@@ -77,7 +77,7 @@ def train(_context, config_path):
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"], 3]),
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]),
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
-        ).prefetch(10)
+        ).prefetch(32)
 
         model = net.ml.NewDeepLabBuilder().get_model(categories_count=len(config["categories"]))
 
@@ -94,7 +94,7 @@ def train(_context, config_path):
                     save_weights_only=False,
                     verbose=1),
                 tf.keras.callbacks.EarlyStopping(
-                    patience=4,
+                    patience=8,
                     verbose=1),
                 tf.keras.callbacks.ReduceLROnPlateau(
                     factor=0.1,
