@@ -280,9 +280,11 @@ class NewDeepLabBuilder:
         )
 
         input_op = base_model.input
-        x = [layer for layer in base_model.layers if layer.name == "conv4_block6_out"][0].output
 
-        decoded_features = self._get_decoder(input_op=x, categories_count=categories_count)
+        decoded_features = self._get_decoder(
+            feature_8x=[layer for layer in base_model.layers if layer.name == "conv4_block6_out"][0].output,
+            feature_2x=[layer for layer in base_model.layers if layer.name == "conv2_block1_out"][0].output,
+            categories_count=categories_count)
 
         predictions_op = tf.keras.layers.Conv2D(
             filters=categories_count, kernel_size=(1, 1), strides=(1, 1), padding='same', activation=tf.nn.softmax
@@ -294,26 +296,27 @@ class NewDeepLabBuilder:
         )
 
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )
 
         return model
 
-    def _get_decoder(self, input_op: tf.Tensor, categories_count: int) -> tf.Tensor:
+    def _get_decoder(self, feature_8x: tf.Tensor, feature_2x: tf.Tensor, categories_count: int) -> tf.Tensor:
         """
         Get decoder
 
         Args:
-            input_op (tf.Tensor): input tensor
+            feature_8x (tf.Tensor): input tensor for which input images is downsampled by 8x
+            feature_2x (tf.Tensor): input tensor for which input images is downsampled by 4x
             categories_count (int): number of categories to predict
 
         Returns:
             tf.Tensor: output op
         """
 
-        x = self._get_atrous_spacial_pooling_pyramid_output(input_op)
+        x = self._get_atrous_spacial_pooling_pyramid_output(feature_8x)
 
         x = tf.keras.layers.BatchNormalization()(x)
 
@@ -326,6 +329,17 @@ class NewDeepLabBuilder:
         x = tf.keras.layers.SeparableConv2D(
             filters=256, kernel_size=(3, 3), strides=(1, 1), padding="same",
             dilation_rate=(1, 1), activation=self.activation)(x)
+
+        low_level_features = tf.keras.layers.SeparableConv2D(
+            filters=64, kernel_size=(1, 1), strides=(1, 1), padding="same",
+            dilation_rate=(1, 1), activation=self.activation)(feature_2x)
+
+        low_level_features = tf.keras.layers.SeparableConv2D(
+            filters=64, kernel_size=(1, 1), strides=(1, 1), padding="same",
+            dilation_rate=(1, 1), activation=self.activation)(low_level_features)
+
+        # Concatenate atrous spacial pooling pyramid features and low level features together
+        x = tf.concat([x, low_level_features], axis=-1)
 
         x = tf.keras.layers.BatchNormalization()(x)
 
@@ -352,7 +366,7 @@ class NewDeepLabBuilder:
             tf.Tensor: output op
         """
 
-        dilation_rates = [6, 12, 18, 24]
+        dilation_rates = [1, 6, 12, 18, 24]
         outputs = []
 
         for dilation_rate in dilation_rates:
@@ -371,4 +385,6 @@ class NewDeepLabBuilder:
 
             outputs.append(x)
 
-        return tf.concat(outputs, axis=-1)
+        x = tf.concat(outputs, axis=-1)
+
+        return tf.keras.layers.BatchNormalization()(x)
