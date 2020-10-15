@@ -2,11 +2,14 @@
 Module with data related code
 """
 
+import copy
 import os
+import random
 import typing
 
 import cv2
 import numpy as np
+import scipy.io
 
 import net.processing
 
@@ -280,3 +283,139 @@ def get_colors_info(categories_count):
 
     indices_to_colors_map = {color_index: tuple(colors_matrix[color_index]) for color_index in range(categories_count)}
     return indices_to_colors_map, tuple(colors_matrix[-1])
+
+
+class CombinedPASCALDatasetsLoader:
+    """
+    Class for loading VOC 2012 and Hariharan's PASCAL segmentation data.
+    Loads training samples for VOC 2012 dataset, and both training and validation samples for Hariharan dataset.
+    """
+
+    def __init__(
+            self, voc_data_directory: str, hariharan_data_directory: str,
+            categories_count: int, batch_size: int) -> None:
+        """
+        Constructor
+
+        Args:
+            voc_data_directory (str): path to VOC data directory
+            hariharan_data_directory (str): path to Hariharan's data directory
+            categories_count (int): number of segmentation categories in data samples
+            batch_size (int): batch size
+        """
+
+        self.voc_data_directory = voc_data_directory
+        self.hariharan_data_directory = hariharan_data_directory
+
+        self.combined_datasets_filenames = self._get_combined_datasets_filenames()
+        self.indices_to_colors_map, self.void_color = get_colors_info(categories_count)
+
+        self.batch_size = batch_size
+
+    def __len__(self):
+
+        return len(self.combined_datasets_filenames) // self.batch_size
+
+    @staticmethod
+    def _get_dataset_filenames(data_directory: str, data_set_path: str) -> typing.List[str]:
+        """
+        Get a list of filenames for the dataset
+
+        Args:
+            data_directory (str): path to data directory
+            data_set_path str): path to file containing dataset filenames. This path is relative to data_directory
+
+        Returns:
+            typing.List[str]: filenames of images used in dataset
+        """
+
+        with open(os.path.join(data_directory, data_set_path)) as file:
+
+            return [line.strip() for line in file.readlines()]
+
+    def _get_combined_datasets_filenames(self) -> typing.List[typing.Tuple[str, str]]:
+        """
+        Get a list of tuples (dataset, filename), containing training samples from VOC dataset, and training +
+        validation samples from Hariharan dataset. Each tuple contains a label that specifies if sample
+        comes from VOC or Hariharan dataset, e.g. ("voc", "file001"), ("hariharan", "file002"), etc
+
+        Returns:
+            typing.List[typing.Tuple[str, str]]: list of tuples (dataset_label, filename)
+        """
+
+        # Remove from hariharan images that appear in voc
+        voc_filenames_list = self._get_dataset_filenames(
+            data_directory=self.voc_data_directory,
+            data_set_path="ImageSets/Segmentation/train.txt")
+
+        # train.txt contains both training and validation samples of Hariharan dataset
+        hariharan_filenames_list = self._get_dataset_filenames(
+            data_directory=self.hariharan_data_directory,
+            data_set_path="dataset/train.txt")
+
+        # hariharan's files that don't appear in voc
+        unique_hariharan_filenames_list = list(set(hariharan_filenames_list).difference(voc_filenames_list))
+
+        return \
+            [("voc", filename) for filename in voc_filenames_list] + \
+            [("hariharan", filename) for filename in unique_hariharan_filenames_list]
+
+    def __iter__(self) -> typing.Iterator[typing.Tuple[np.ndarray, np.ndarray]]:
+        """
+        Iterator that yields (image, segmentation) samples. Samples are shuffled on every epoch
+
+        Returns:
+            typing.Iterator[typing.Tuple[np.ndarray, np.ndarray]]: iterator yielding (image, segmentation) samples
+        """
+
+        local_combined_datasets_filenames = copy.deepcopy(self.combined_datasets_filenames)
+
+        sample_getters_map = {
+            "voc": self._get_voc_sample,
+            "hariharan": self._get_hariharan_sample
+        }
+
+        images_batch = []
+        segmentations_batch = []
+
+        while True:
+
+            random.shuffle(local_combined_datasets_filenames)
+
+            for dataset, filename in local_combined_datasets_filenames:
+
+                image, segmentation = sample_getters_map[dataset](filename)
+
+                images_batch.append(image)
+                segmentations_batch.append(segmentation)
+
+                if len(images_batch) == self.batch_size:
+
+                    yield images_batch, segmentations_batch
+
+                    images_batch.clear()
+                    segmentations_batch.clear()
+
+    def _get_voc_sample(self, filename: str) -> typing.Tuple[np.ndarray, np.ndarray]:
+
+        image_path = os.path.join(self.voc_data_directory, "JPEGImages/{}.jpg".format(filename))
+        segmentation_path = os.path.join(self.voc_data_directory, "SegmentationClass/{}.png".format(filename))
+
+        return cv2.imread(image_path), cv2.imread(segmentation_path)
+
+    def _get_hariharan_sample(self, filename: str) -> typing.Tuple[np.ndarray, np.ndarray]:
+
+        image_path = os.path.join(self.hariharan_data_directory, "dataset/img", filename + ".jpg")
+        image = cv2.imread(image_path)
+
+        segmentation_path = os.path.join(self.hariharan_data_directory, "dataset/cls", filename + ".mat")
+        segmentation_data = scipy.io.loadmat(segmentation_path)
+        segmentation_matrix = segmentation_data["GTcls"][0][0][1]
+
+        segmentation = self.void_color * np.ones(shape=image.shape, dtype=np.uint8)
+
+        for category_index in set(segmentation_matrix.reshape(-1)):
+
+            segmentation[segmentation_matrix == category_index] = self.indices_to_colors_map[category_index]
+
+        return image, segmentation
