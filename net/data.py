@@ -323,7 +323,7 @@ class CombinedPASCALDatasetsLoader:
 
         Args:
             data_directory (str): path to data directory
-            data_set_path str): ath to file containing dataset filenames. This path is relative to data_directory
+            data_set_path str): path to file containing dataset filenames. This path is relative to data_directory
 
         Returns:
             typing.List[str]: filenames of images used in dataset
