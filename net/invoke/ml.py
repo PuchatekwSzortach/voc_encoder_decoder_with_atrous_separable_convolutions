@@ -79,7 +79,7 @@ def train(_context, config_path):
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
         ).prefetch(32)
 
-        model = net.ml.NewDeepLabBuilder().get_model(categories_count=len(config["categories"]))
+        model = net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
 
         model.fit(
             x=training_dataset,

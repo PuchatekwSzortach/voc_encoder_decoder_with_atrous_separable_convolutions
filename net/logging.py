@@ -11,6 +11,7 @@ import numpy as np
 import tensorflow as tf
 import vlogging
 
+import net.data
 import net.processing
 
 

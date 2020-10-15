@@ -23,12 +23,11 @@ def visualize_data(_context, config_path):
 
     config = net.utilities.read_yaml(config_path)
 
-    data_loader = net.data.VOCSamplesDataLoader(
-        images_directory=config["voc_data_images_directory"],
-        segmentations_directory=config["voc_data_segmentations_directory"],
-        data_set_path=config["voc_training_samples_list_path"],
-        batch_size=config["batch_size"],
-        shuffle=True
+    data_loader = net.data.CombinedPASCALDatasetsLoader(
+        voc_data_directory=config["voc_data_directory"],
+        hariharan_data_directory=config["hariharan_data_directory"],
+        categories_count=len(config["categories"]),
+        batch_size=config["batch_size"]
     )
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
