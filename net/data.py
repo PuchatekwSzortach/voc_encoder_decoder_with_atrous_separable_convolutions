@@ -206,7 +206,10 @@ class TrainingDataLoader:
             masks = [
                 np.all(segmentation != self.void_color, axis=-1).astype(np.int32) for segmentation in segmentations]
 
-            yield images.astype(np.float32), np.array(sparse_segmentations, dtype=np.float32), np.array(masks)
+            yield \
+                images.astype(np.float32), \
+                np.array(sparse_segmentations, dtype=np.float32), \
+                np.array(masks).astype(np.float32)
 
     def _process_batch(self, images: np.ndarray, segmentations: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
