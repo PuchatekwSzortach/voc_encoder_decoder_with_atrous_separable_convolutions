@@ -159,5 +159,6 @@ def visualize_predictions(_context, config_path):
             prediction_model=prediction_model,
             images=images,
             ground_truth_segmentations=segmentations,
-            categories=config["categories"]
+            categories=config["categories"],
+            target_size=config["training_image_dimension"]
         )
