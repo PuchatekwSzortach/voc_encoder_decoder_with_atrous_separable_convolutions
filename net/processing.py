@@ -41,7 +41,7 @@ def pad_to_size(image: np.ndarray, size: int, color: typing.Tuple[int, int, int]
 
 def remove_borders(image: np.ndarray, target_size: typing.Tuple[int, int]) -> np.ndarray:
     """
-    Remove borders from around the image so the output is of of target_size.
+    Remove borders from around the image so the output is of target_size.
 
     Args:
         image (np.ndarray): input image
