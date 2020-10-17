@@ -6,13 +6,15 @@ import invoke
 
 
 @invoke.task
-def train(_context, config_path):
+def train(_context, config_path, load_existing_model=False):
     """
     Task for training a segmentation model
 
     Args:
         _context (invoke.Context): context instance
         config_path (str): path to configuration file
+        load_existing_model (bool): specifies if existing model should be loaded, instead of training from scratch.
+        Defaults to False
     """
 
     import mlflow
@@ -35,7 +37,8 @@ def train(_context, config_path):
             voc_data_directory=config["voc_data_directory"],
             hariharan_data_directory=config["hariharan_data_directory"],
             categories_count=len(config["categories"]),
-            batch_size=config["batch_size"]
+            batch_size=config["batch_size"],
+            augmentation_pipeline=net.processing.get_augmentation_pipepline()
         )
 
         training_samples_data_loader = net.data.TrainingDataLoader(
@@ -78,7 +81,14 @@ def train(_context, config_path):
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
         ).prefetch(32)
 
-        model = net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
+        model = tf.keras.models.load_model(filepath=config["current_model_directory"]) if load_existing_model \
+            else net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
+
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']
+        )
 
         model.fit(
             x=training_dataset,

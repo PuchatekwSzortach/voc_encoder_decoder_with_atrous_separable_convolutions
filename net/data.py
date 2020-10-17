@@ -8,6 +8,7 @@ import random
 import typing
 
 import cv2
+import imgaug
 import numpy as np
 import scipy.io
 
@@ -296,7 +297,7 @@ class CombinedPASCALDatasetsLoader:
 
     def __init__(
             self, voc_data_directory: str, hariharan_data_directory: str,
-            categories_count: int, batch_size: int) -> None:
+            categories_count: int, batch_size: int, augmentation_pipeline: imgaug.augmenters.Augmenter) -> None:
         """
         Constructor
 
@@ -305,6 +306,7 @@ class CombinedPASCALDatasetsLoader:
             hariharan_data_directory (str): path to Hariharan's data directory
             categories_count (int): number of segmentation categories in data samples
             batch_size (int): batch size
+            augmentation_pipeline (imgaug.augmenters.Augmenter): augmentation pipeline
         """
 
         self.voc_data_directory = voc_data_directory
@@ -314,6 +316,7 @@ class CombinedPASCALDatasetsLoader:
         self.indices_to_colors_map, self.void_color = get_colors_info(categories_count)
 
         self.batch_size = batch_size
+        self.augmentation_pipeline = augmentation_pipeline
 
     def __len__(self):
 
@@ -394,7 +397,10 @@ class CombinedPASCALDatasetsLoader:
 
                 if len(images_batch) == self.batch_size:
 
-                    yield images_batch, segmentations_batch
+                    augmented_images, augmented_segmentations = self.augmentation_pipeline(
+                        images=images_batch, segmentation_maps=segmentations_batch)
+
+                    yield augmented_images, augmented_segmentations
 
                     images_batch.clear()
                     segmentations_batch.clear()
@@ -404,7 +410,7 @@ class CombinedPASCALDatasetsLoader:
         image_path = os.path.join(self.voc_data_directory, "JPEGImages/{}.jpg".format(filename))
         segmentation_path = os.path.join(self.voc_data_directory, "SegmentationClass/{}.png".format(filename))
 
-        return cv2.imread(image_path), cv2.imread(segmentation_path)
+        return cv2.imread(image_path), cv2.imread(segmentation_path).astype(np.uint8)
 
     def _get_hariharan_sample(self, filename: str) -> typing.Tuple[np.ndarray, np.ndarray]:
 
@@ -421,4 +427,4 @@ class CombinedPASCALDatasetsLoader:
 
             segmentation[segmentation_matrix == category_index] = self.indices_to_colors_map[category_index]
 
-        return image, segmentation
+        return image, segmentation.astype(np.uint8)
