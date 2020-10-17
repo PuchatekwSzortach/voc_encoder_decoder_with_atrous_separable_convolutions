@@ -51,12 +51,6 @@ class DeepLabV3PlusBuilder:
             outputs=[predictions_op]
         )
 
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-            loss='sparse_categorical_crossentropy',
-            metrics=['accuracy']
-        )
-
         return model
 
     def _get_decoder(self, feature_8x: tf.Tensor, feature_2x: tf.Tensor, categories_count: int) -> tf.Tensor:

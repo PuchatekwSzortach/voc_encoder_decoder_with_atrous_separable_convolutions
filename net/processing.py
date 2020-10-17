@@ -4,6 +4,7 @@ Module with processing functions
 
 import typing
 
+import imgaug
 import numpy as np
 
 
@@ -116,3 +117,19 @@ def get_dense_segmentation_labels_image(
         bgr_segmentation_image[mask] = color
 
     return bgr_segmentation_image
+
+
+def get_augmentation_pipepline() -> imgaug.augmenters.Augmenter:
+    """
+    Get augmentation pipeline
+    """
+
+    return imgaug.augmenters.Sequential([
+        imgaug.augmenters.Fliplr(p=0.5),
+        imgaug.augmenters.SomeOf(
+            n=(0, 3),
+            children=[
+                imgaug.augmenters.Affine(rotate=(-10, 10)),
+                imgaug.augmenters.Affine(scale=(0.5, 1.5))
+            ])
+    ])

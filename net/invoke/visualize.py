@@ -15,10 +15,12 @@ def visualize_data(_context, config_path):
         config_path (str): path to configuration file
     """
 
+    import cv2
     import tqdm
     import vlogging
 
     import net.data
+    import net.processing
     import net.utilities
 
     config = net.utilities.read_yaml(config_path)
@@ -27,7 +29,8 @@ def visualize_data(_context, config_path):
         voc_data_directory=config["voc_data_directory"],
         hariharan_data_directory=config["hariharan_data_directory"],
         categories_count=len(config["categories"]),
-        batch_size=config["batch_size"]
+        batch_size=config["batch_size"],
+        augmentation_pipeline=net.processing.get_augmentation_pipepline()
     )
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
@@ -41,14 +44,14 @@ def visualize_data(_context, config_path):
         logger.info(
             vlogging.VisualRecord(
                 title="images",
-                imgs=list(images)
+                imgs=[cv2.pyrDown(image) for image in images]
             )
         )
 
         logger.info(
             vlogging.VisualRecord(
                 title="segmentations",
-                imgs=list(segmentations)
+                imgs=[cv2.pyrDown(image) for image in segmentations]
             )
         )
 
@@ -76,7 +79,8 @@ def visualize_training_samples(_context, config_path):
         voc_data_directory=config["voc_data_directory"],
         hariharan_data_directory=config["hariharan_data_directory"],
         categories_count=len(config["categories"]),
-        batch_size=config["batch_size"]
+        batch_size=config["batch_size"],
+        augmentation_pipeline=net.processing.get_augmentation_pipepline()
     )
 
     training_samples_data_loader = net.data.TrainingDataLoader(

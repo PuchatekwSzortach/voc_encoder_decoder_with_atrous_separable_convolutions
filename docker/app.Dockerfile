@@ -2,8 +2,8 @@
 
 FROM tensorflow/tensorflow:2.3.1-gpu
 
-# Install a few useful libs and apps
-RUN apt update && apt install -y wget vim
+# Install a few necessary need or useful libs and apps
+RUN apt update && apt install -y wget vim libgl1-mesa-dev
 
 # Download base tensorflow model to app_user's folder, change permission so he can use it
 RUN mkdir -p /root/.keras/models && \
