@@ -86,7 +86,7 @@ def train(_context, config_path, load_existing_model=False):
 
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-            loss='sparse_categorical_crossentropy',
+            loss=net.ml.get_temperature_scaled_sparse_softmax,
             metrics=['accuracy']
         )
 
