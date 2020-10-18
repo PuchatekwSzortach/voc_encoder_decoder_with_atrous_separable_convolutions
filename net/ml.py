@@ -138,3 +138,26 @@ class DeepLabV3PlusBuilder:
         x = tf.concat(outputs, axis=-1)
 
         return tf.keras.layers.BatchNormalization()(x)
+
+
+def get_temperature_scaled_sparse_softmax(labels: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
+    """
+    Get a temperature scaled sparse softmax loss
+
+    Args:
+        labels (tf.Tensor): batch of labels
+        predictions (tf.Tensor): batch of predictions
+
+    Returns:
+        tf.Tensor: loss tensor
+    """
+
+    temperature = 0.5
+
+    # Compute temperature scaled logits
+    logits = predictions.op.inputs[0]
+    scaled_logits = logits / temperature
+
+    return tf.keras.losses.sparse_categorical_crossentropy(
+        labels, scaled_logits, from_logits=True
+    )

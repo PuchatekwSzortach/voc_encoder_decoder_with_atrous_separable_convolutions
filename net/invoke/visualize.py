@@ -135,6 +135,7 @@ def visualize_predictions(_context, config_path):
 
     import net.data
     import net.logging
+    import net.ml
     import net.processing
     import net.utilities
 
@@ -150,7 +151,12 @@ def visualize_predictions(_context, config_path):
 
     logger = net.utilities.get_logger(path="/tmp/log.html")
 
-    prediction_model = tf.keras.models.load_model(filepath=config["current_model_directory"])
+    prediction_model = tf.keras.models.load_model(
+        filepath=config["current_model_directory"],
+        custom_objects={
+            "get_temperature_scaled_sparse_softmax": net.ml.get_temperature_scaled_sparse_softmax
+        }
+    )
 
     iterator = iter(data_loader)
 

@@ -50,6 +50,7 @@ def analyze_model(_context, config_path):
 
     import net.analysis
     import net.data
+    import net.ml
     import net.logging
     import net.processing
     import net.utilities
@@ -71,7 +72,11 @@ def analyze_model(_context, config_path):
         categories=config["categories"]
     )
 
-    prediction_model = tf.keras.models.load_model(filepath=config["current_model_directory"])
+    prediction_model = tf.keras.models.load_model(
+        filepath=config["current_model_directory"],
+        custom_objects={
+            "get_temperature_scaled_sparse_softmax": net.ml.get_temperature_scaled_sparse_softmax
+        })
 
     net.analysis.ModelAnalyzer(
         mlflow_tracking_uri=config["mlflow_tracking_uri"],
