@@ -130,6 +130,32 @@ def get_augmentation_pipepline() -> imgaug.augmenters.Augmenter:
             n=(0, 3),
             children=[
                 imgaug.augmenters.Affine(rotate=(-10, 10)),
-                imgaug.augmenters.Affine(scale=(0.5, 1.5))
+                imgaug.augmenters.Affine(scale=(0.5, 1.5)),
+                imgaug.augmenters.Affine(shear={"x": (-20, 20)}),
+                imgaug.augmenters.Affine(shear={"y": (-20, 20)}),
             ])
     ])
+
+
+def are_any_target_colors_present_in_image(
+        image: np.ndarray, colors: typing.List[typing.Tuple[int, int, int]]) -> bool:
+    """
+    Check if image contains any of target colors
+
+    Args:
+        image (np.ndarray): 3D array that should be examined for target colors
+        colors (typing.List[typing.Tuple[int, int, int]]): list of colors to search for
+
+    Returns:
+        bool: True if any of target colors is found in image, False otherwise
+    """
+
+    for color in colors:
+
+        # inner np.all checks that for given pixel in image all three components of a color are correct,
+        # then outer any checks that there was any pixel with given color
+        if any(np.all(image.reshape(-1, 3) == color, axis=-1)) is True:
+            return True
+
+    # No target color found in image
+    return False

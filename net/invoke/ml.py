@@ -34,10 +34,7 @@ def train(_context, config_path, load_existing_model=False):
         mlflow.tensorflow.autolog(every_n_iter=1)
 
         trainig_voc_samples_data_loader = net.data.CombinedPASCALDatasetsLoader(
-            voc_data_directory=config["voc_data_directory"],
-            hariharan_data_directory=config["hariharan_data_directory"],
-            categories_count=len(config["categories"]),
-            batch_size=config["batch_size"],
+            config=config,
             augmentation_pipeline=net.processing.get_augmentation_pipepline()
         )
 
@@ -81,8 +78,12 @@ def train(_context, config_path, load_existing_model=False):
                 tf.TensorShape([None, config["training_image_dimension"], config["training_image_dimension"]]))
         ).prefetch(32)
 
-        model = tf.keras.models.load_model(filepath=config["current_model_directory"]) if load_existing_model \
-            else net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
+        model = tf.keras.models.load_model(
+            filepath=config["current_model_directory"],
+            custom_objects={
+                "get_temperature_scaled_sparse_softmax": net.ml.get_temperature_scaled_sparse_softmax}
+        ) if load_existing_model else \
+            net.ml.DeepLabV3PlusBuilder().get_model(categories_count=len(config["categories"]))
 
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),

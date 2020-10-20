@@ -46,3 +46,7 @@ categories:
 
 # Address from app container at which mlflow server can be reached
 mlflow_tracking_uri: "http://voc_mlflow:5000"
+
+categories_to_upsample: [
+    'bicycle', 'chair', 'diningtable', 'pottedplant', 'sofa'
+]
