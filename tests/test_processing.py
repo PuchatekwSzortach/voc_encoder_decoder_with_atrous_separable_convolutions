@@ -62,3 +62,33 @@ def test_get_dense_segmentation_labels_image():
         segmentation_image, indices_to_colors_map)
 
     assert np.all(expected == actual)
+
+
+def test_are_any_target_colors_present_in_image_when_target_colors_present_in_image():
+    """
+    Test net.processing.are_any_target_colors_present_in_image when target colors are present in image
+    """
+
+    image = np.array([
+        [1, 2, 3], [2, 3, 4], [3, 4, 5],
+        [5, 2, 3], [7, 3, 4], [8, 4, 5],
+    ]).reshape((2, 3, 3))
+
+    colors = [(2, 3, 4), (7, 7, 7)]
+
+    assert net.processing.are_any_target_colors_present_in_image(image, colors) is True
+
+
+def test_are_any_target_colors_present_in_image_when_target_colors_are_nopresent_in_image():
+    """
+    Test net.processing.are_any_target_colors_present_in_image are not present in image
+    """
+
+    image = np.array([
+        [1, 2, 3], [2, 3, 4], [3, 4, 5],
+        [5, 2, 3], [7, 3, 4], [8, 4, 5],
+    ]).reshape((2, 3, 3))
+
+    colors = [(2, 3, 6), (7, 7, 7)]
+
+    assert net.processing.are_any_target_colors_present_in_image(image, colors) is False

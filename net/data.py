@@ -295,32 +295,34 @@ class CombinedPASCALDatasetsLoader:
     Loads training samples for VOC 2012 dataset, and both training and validation samples for Hariharan dataset.
     """
 
-    def __init__(
-            self, voc_data_directory: str, hariharan_data_directory: str,
-            categories_count: int, batch_size: int, augmentation_pipeline: imgaug.augmenters.Augmenter) -> None:
+    def __init__(self, config: dict, augmentation_pipeline: imgaug.augmenters.Augmenter) -> None:
         """
         Constructor
 
         Args:
-            voc_data_directory (str): path to VOC data directory
-            hariharan_data_directory (str): path to Hariharan's data directory
-            categories_count (int): number of segmentation categories in data samples
-            batch_size (int): batch size
-            augmentation_pipeline (imgaug.augmenters.Augmenter): augmentation pipeline
+            config (dict): dictionary with configuration data
+            augmentation_pipeline (imgaug.augmenters.Augmenter): data augmentation pipeline
         """
 
-        self.voc_data_directory = voc_data_directory
-        self.hariharan_data_directory = hariharan_data_directory
+        self.config = config
 
-        self.combined_datasets_filenames = self._get_combined_datasets_filenames()
-        self.indices_to_colors_map, self.void_color = get_colors_info(categories_count)
+        self.voc_data_directory = config["voc_data_directory"]
+        self.hariharan_data_directory = config["hariharan_data_directory"]
 
-        self.batch_size = batch_size
+        self.indices_to_colors_map, self.void_color = get_colors_info(len(self.config["categories"]))
+
+        self.combined_datasets_filenames = self._get_upsampled_samples_filenames(
+            dataset_filename_tuples=self._get_combined_datasets_filenames(),
+            categories_to_upsample=config["categories_to_upsample"],
+            categories_to_colors_map={
+                self.config["categories"][index]: color for index, color in self.indices_to_colors_map.items()}
+        )
+
         self.augmentation_pipeline = augmentation_pipeline
 
     def __len__(self):
 
-        return len(self.combined_datasets_filenames) // self.batch_size
+        return len(self.combined_datasets_filenames) // self.config["batch_size"]
 
     @staticmethod
     def _get_dataset_filenames(data_directory: str, data_set_path: str) -> typing.List[str]:
@@ -395,7 +397,7 @@ class CombinedPASCALDatasetsLoader:
                 images_batch.append(image)
                 segmentations_batch.append(segmentation)
 
-                if len(images_batch) == self.batch_size:
+                if len(images_batch) == self.config["batch_size"]:
 
                     augmented_images, augmented_segmentations = self.augmentation_pipeline(
                         images=images_batch, segmentation_maps=segmentations_batch)
@@ -428,3 +430,47 @@ class CombinedPASCALDatasetsLoader:
             segmentation[segmentation_matrix == category_index] = self.indices_to_colors_map[category_index]
 
         return image, segmentation.astype(np.uint8)
+
+    def _get_upsampled_samples_filenames(
+            self,
+            dataset_filename_tuples: typing.List[typing.Tuple[str, str]],
+            categories_to_upsample: typing.List[str],
+            categories_to_colors_map: typing.Dict[str, typing.Tuple[int, int, int]]
+            ) -> typing.List[typing.Tuple[str, str]]:
+        """
+        Given vanilla list of samples, return upsampled list
+
+        Args:
+            dataset_filename_tuples (typing.List[typing.Tuple[str, str]]): list of (dataset name, filename),
+            essentially a lightweight proxy to a list of samples
+            categories_to_upsample (typing.List[str]): list of categories which we should upsample
+            categories_to_colors_map (typing.Dict[str, typing.Tuple(int, int, int)]):
+            dictionary mapping categories to colors
+
+        Returns:
+            typing.List[typing.Tuple[str, str]]: upsamples list of samples
+        """
+
+        upsampled_dataset_filename_tuples: typing.List[typing.Tuple[str, str]] = []
+
+        sample_getters_map = {
+            "voc": self._get_voc_sample,
+            "hariharan": self._get_hariharan_sample
+        }
+
+        colors_for_categories_to_upsample = [categories_to_colors_map[category] for category in categories_to_upsample]
+
+        for dataset, filename in dataset_filename_tuples:
+
+            _, segmentation = sample_getters_map[dataset](filename)
+
+            # If sample contains any categories we should upsample
+            if net.processing.are_any_target_colors_present_in_image(
+                    image=segmentation,
+                    colors=colors_for_categories_to_upsample) is True:
+
+                upsampled_dataset_filename_tuples.extend(
+                    2 * ((dataset, filename),)
+                )
+
+        return dataset_filename_tuples + upsampled_dataset_filename_tuples
