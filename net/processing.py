@@ -4,6 +4,7 @@ Module with processing functions
 
 import typing
 
+import cv2
 import imgaug
 import numpy as np
 
@@ -159,3 +160,27 @@ def are_any_target_colors_present_in_image(
 
     # No target color found in image
     return False
+
+
+def get_segmentation_overlay(
+        image: np.ndarray, segmentation: np.ndarray, background_color: typing.Tuple[int, int, int]) -> np.ndarray:
+    """
+    Get image with segmentation overlaid over it.
+
+    Args:
+        image (np.ndarray): 3-channel image
+        segmentation (np.ndarray): 3-channel segmentation
+        background_color (typing.Tuple[int, int, int]): background color, segmentation pixels that match
+        background color won't be overlaid over image
+
+    Returns:
+        np.ndarray: Image with segmentation overlaid over it
+    """
+
+    blended_image = cv2.addWeighted(image, 0.4, segmentation, 0.6, 0)
+    overlay = image.copy()
+
+    mask = segmentation != background_color
+    overlay[mask] = blended_image[mask]
+
+    return overlay

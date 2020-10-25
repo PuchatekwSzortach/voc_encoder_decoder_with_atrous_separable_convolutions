@@ -68,3 +68,17 @@ def log_predictions(
             imgs=[cv2.pyrDown(image) for image in borderless_bgr_predictions]
         )
     )
+
+    predictions_overlays = [
+        net.processing.get_segmentation_overlay(
+            image=image,
+            segmentation=segmentation,
+            background_color=(0, 0, 0,)
+        ) for image, segmentation in zip(images, borderless_bgr_predictions)]
+
+    logger.info(
+        vlogging.VisualRecord(
+            title="predictions overlays",
+            imgs=[cv2.pyrDown(image) for image in predictions_overlays]
+        )
+    )
