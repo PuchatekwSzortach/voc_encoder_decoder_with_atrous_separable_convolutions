@@ -66,7 +66,7 @@ class DeepLabV3PlusBuilder:
             tf.Tensor: output op
         """
 
-        x = self._get_atrous_spacial_pooling_pyramid_output(feature_8x)
+        x = self._get_atrous_spatial_pooling_pyramid_output(feature_8x)
 
         x = tf.keras.layers.BatchNormalization()(x)
 
@@ -105,9 +105,9 @@ class DeepLabV3PlusBuilder:
 
         return x
 
-    def _get_atrous_spacial_pooling_pyramid_output(self, input_op: tf.Tensor) -> tf.Tensor:
+    def _get_atrous_spatial_pooling_pyramid_output(self, input_op: tf.Tensor) -> tf.Tensor:
         """
-        Get atrous spacial pooling pyramid output
+        Get atrous spatial pooling pyramid output
 
         Args:
             input_op (tf.Tensor): input tensor
