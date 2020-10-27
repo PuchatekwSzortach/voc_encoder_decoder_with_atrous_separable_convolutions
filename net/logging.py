@@ -43,10 +43,17 @@ def log_predictions(
         )
     )
 
+    ground_truth_overlays = [
+        net.processing.get_segmentation_overlay(
+            image=image,
+            segmentation=segmentation,
+            background_color=(0, 0, 0,)
+        ) for image, segmentation in zip(images, ground_truth_segmentations)]
+
     logger.info(
         vlogging.VisualRecord(
             title="ground truth segmentations",
-            imgs=[cv2.pyrDown(image) for image in ground_truth_segmentations]
+            imgs=[cv2.pyrDown(image) for image in ground_truth_overlays]
         )
     )
 
@@ -61,13 +68,6 @@ def log_predictions(
         image=prediction,
         target_size=ground_truth_image.shape[:2]
     ) for prediction, ground_truth_image in zip(bgr_predictions, images)]
-
-    logger.info(
-        vlogging.VisualRecord(
-            title="segmentations predictions",
-            imgs=[cv2.pyrDown(image) for image in borderless_bgr_predictions]
-        )
-    )
 
     predictions_overlays = [
         net.processing.get_segmentation_overlay(

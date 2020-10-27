@@ -177,10 +177,10 @@ def get_segmentation_overlay(
         np.ndarray: Image with segmentation overlaid over it
     """
 
-    blended_image = cv2.addWeighted(image, 0.4, segmentation, 0.6, 0)
+    blended_image = cv2.addWeighted(image, 0.2, segmentation, 0.8, 0)
     overlay = image.copy()
 
-    mask = segmentation != background_color
+    mask = np.logical_not(np.all(segmentation == background_color, axis=-1))
     overlay[mask] = blended_image[mask]
 
     return overlay
