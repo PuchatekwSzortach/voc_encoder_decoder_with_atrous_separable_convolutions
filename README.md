@@ -10,7 +10,7 @@ Code for training and evaluating algorithm on VOC2012 segmentation competition i
 This implementation has a few minor differences from original paper:
 - Resnet-50 pretrained on ImageNet is used for base network - original paper replaces Resnet-50 with an alternative implementation based on separable convolutions. Since no weights, nor easily accessible implementations, are provided for that model, we use Resnet-50 instead.
 - less convolutional filters are used throughout the model, especially in atrous spatial pyramid pooling module - this is only to keep GPU memory and computational time reasonable given hardware available to us.
-- training schema - original paper first trains on VOC2012 + Hariharan datasets, then performs fine-tuning on VOC2012 dataset only, because Hariharan samples have worse quality segmentations for difficult categories, e.g. bicycles. We instead upsample number of difficult categories samples from VOC2012 dataset, but don't perform fine tuning on VOC2012 dataset only. While schema from the paper is likely to give better results, we chose to go with a simpler implementation instead.
+- training schema - original paper first trains on VOC2012 + Hariharan datasets, then performs fine-tuning on VOC2012 dataset only, because Hariharan samples have worse quality segmentations for difficult categories, e.g. bicycles. We instead upsample number of difficult categories samples from both VOC2012 and Hariharan datasets, and don't perform fine tuning on VOC2012 dataset only. While schema from the paper is likely to give better results, we chose to go with a simpler implementation instead.
 
 ### Results
 
@@ -54,13 +54,13 @@ tvmonitor | 0.7370
 
 ### How to run
 
-A docker container is provided to run the project, along with a few helper host-side invoke tasks to start and manage then environment.
+A docker container is provided to run the project, along with a few helper host-side invoke tasks to start and manage the environment.
 Almost every task accepts `--config-path` argument, a path to configuration file that defines paths to data, batch size to use, etc.
 You can refer to `config.yaml` for a sample configuration file.
 
 Host-side invoke tasks are:
 - `docker.build_app_container` - builds main container inside which train, analysis, and visualization tasks can be run
-- `docker.compose-up` - this is a thin wrapper around docker-compose task that starts `nginx` container for serving output files, and `mlflow` container for storing and serving training and evaluation metrics.
+- `docker.compose-up` - this is a thin wrapper around docker-compose task that starts `nginx` container for serving data visualizations, and `mlflow` container for storing and serving training and evaluation metrics.
 - `docker.run` - runs app container. This is kept separate from `docker.compose-up` task, because at the time of this writing `docker-compose` can't start a container with access to GPU, while `docker` can.
 
 Inside the container, the most important `invoke` tasks are:
